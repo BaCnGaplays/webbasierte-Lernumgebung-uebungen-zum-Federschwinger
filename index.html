@@ -1,0 +1,1782 @@
+<!doctype html>
+<!--
+  Selbstlernumgebung: Federschwingungen — T = 2π·√(m/D)
+  Copyright (c) 2026 Oliver Schlicht
+  Der HTML-Code wurde von Oliver Schlicht mit Unterstützung von Mistral AI
+  (Vibe, Sprachmodell GLM) erstellt.
+  Veröffentlicht unter der MIT-Lizenz: https://opensource.org/licenses/MIT
+-->
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Webbasierte Lernumgebung: Übungen zum Federschwingunger</title>
+<style>
+  :root {
+    --bg: #f4f6fa;
+    --card: #ffffff;
+    --ink: #1f2937;
+    --muted: #5b6472;
+    --accent: #1d4e89;
+    --accent-soft: #e3ecf7;
+    --ok: #1a7f4e;
+    --ok-soft: #e2f4ea;
+    --warn: #b4530a;
+    --warn-soft: #fdeede;
+    --border: #d7dde7;
+    --radius: 12px;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); line-height: 1.55; }
+  .wrap { max-width: 940px; margin: 0 auto; padding: 16px 16px 64px; }
+
+  header.top { background: var(--accent); color: #fff; border-radius: var(--radius); padding: 20px 22px; margin-bottom: 14px; }
+  header.top h1 { margin: 0 0 6px; font-size: 1.3rem; }
+  header.top p { margin: 0; opacity: .92; font-size: .95rem; }
+
+  nav.tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0; }
+  nav.tabs button {
+    border: 1px solid var(--border); background: var(--card); color: var(--ink);
+    padding: 8px 14px; border-radius: 999px; cursor: pointer; font-size: .9rem;
+  }
+  nav.tabs button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  nav.tabs button .done { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #c8cfdc; margin-left: 7px; vertical-align: middle; }
+  nav.tabs button .done.full { background: #37b26d; }
+
+  .progressbar { height: 8px; background: #e2e7ef; border-radius: 999px; overflow: hidden; margin-bottom: 18px; }
+  .progressbar span { display: block; height: 100%; background: var(--accent); width: 0; transition: width .3s; }
+
+  section.panel { display: none; }
+  section.panel.active { display: block; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; margin-bottom: 16px; }
+  .card h2 { margin: 0 0 10px; font-size: 1.1rem; color: var(--accent); }
+  .card p, .card li { font-size: .95rem; }
+  .muted { color: var(--muted); font-size: .88rem; }
+
+  .formula { background: var(--accent-soft); border-radius: 8px; padding: 10px 14px; margin: 10px 0; font-size: 1.16rem; text-align: center; }
+
+  /* LaTeX-Darstellung: Mathematikschrift, Formelzeichen kursiv, Einheiten aufrecht */
+  .math { font-family: "STIX Two Math", "Cambria Math", "Latin Modern Math", Georgia, "Times New Roman", serif; font-size: 1.05em; }
+  .math .op { padding: 0 0.22em; }
+  .math .opn { padding: 0 0.12em; }
+  .math .frac { display: inline-block; vertical-align: middle; text-align: center; margin: 0 .14em; }
+  .math .frac .fr-t { display: block; padding: 0 .3em .1em; border-bottom: 1px solid currentColor; line-height: 1.25; }
+  .math .frac .fr-b { display: block; padding: .1em .3em 0; line-height: 1.25; }
+  .math .sqrt { display: inline-flex; align-items: stretch; vertical-align: middle; }
+  .math .sqrt svg { width: 0.66em; height: auto; align-self: stretch; margin-right: 0.05em; overflow: visible; }
+  .math .sqrt .under { border-top: 1px solid currentColor; padding: 0 0.16em 0 0.05em; }
+  .math .vec { position: relative; display: inline-block; padding: 0 0.08em; }
+  .math .vec::before { content: "\2192"; position: absolute; top: -0.6em; left: 50%; transform: translateX(-50%); font-size: 0.62em; line-height: 1; }
+  .math sup, .math sub { font-size: .72em; }
+  .dm { text-align: center; font-size: 1.15rem; margin: 2px 0 8px; }
+
+  .item { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; margin-bottom: 16px; }
+  .item .tag { display: inline-block; font-size: .72rem; letter-spacing: .04em; text-transform: uppercase; color: var(--accent); background: var(--accent-soft); border-radius: 999px; padding: 3px 10px; margin-bottom: 8px; }
+  .item .prompt { margin: 6px 0 10px; }
+  .item.solved { border-color: #9fd4b4; background: #fbfffc; }
+  .item.extra { border-style: dashed; border-color: #c9b458; background: #fffcf2; }
+  .item.extra.solved { border-color: #9fd4b4; background: #fbfffc; }
+  .tag.extra-tag { background: #f5ecd0; color: #7a6414; margin-left: 6px; }
+
+  .step { border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; margin-top: 12px; }
+  .step .step-title { font-weight: 600; margin-bottom: 8px; color: var(--accent); }
+  .step.locked { opacity: .45; }
+  .step.done-step { border-color: #a9d8bd; background: #f7fcf9; }
+
+  .answer-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 8px; }
+  .answer-row input[type=text] { width: 140px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem; }
+  .btn { background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 9px 16px; font-size: .95rem; cursor: pointer; }
+  .btn.secondary { background: var(--card); color: var(--accent); border: 1px solid var(--accent); }
+  .btn:disabled { opacity: .5; cursor: default; }
+
+  .options { display: grid; gap: 8px; margin: 10px 0; }
+  .options label { display: flex; gap: 10px; align-items: flex-start; background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; cursor: pointer; }
+  .options label:hover { border-color: var(--accent); }
+  .options label.correct { border-color: var(--ok); background: var(--ok-soft); }
+  .options input { margin-top: 3px; }
+  .options label.fopt { display: block; text-align: center; padding: 20px 12px 12px; position: relative; }
+  .options label.fopt input { position: absolute; top: 10px; left: 12px; margin: 0; }
+
+  .feedback { border-radius: 8px; padding: 12px 14px; margin-top: 12px; font-size: .93rem; display: none; }
+  .feedback.show { display: block; }
+  .feedback.ok { background: var(--ok-soft); border: 1px solid #a9d8bd; }
+  .feedback.retry { background: var(--warn-soft); border: 1px solid #edc9a4; }
+  .feedback.info { background: var(--accent-soft); border: 1px solid #c4d8ef; }
+  .feedback .fb-title { font-weight: 600; margin-bottom: 4px; }
+  .feedback ul { margin: 6px 0 2px; padding-left: 18px; }
+
+  .confbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 10px; padding: 10px 12px; background: #f0f3f8; border-radius: 8px; }
+
+  .muster { background: #f4f4f9; border: 1px solid #d9d9e5; border-radius: 8px; padding: 14px 16px; margin-top: 12px; font-size: .94rem; display: none; }
+  .muster.show { display: block; }
+  .muster .m-title { font-weight: 600; margin-bottom: 6px; color: var(--accent); }
+  .muster p { margin: 4px 0; }
+
+  /* Rechenblatt: Zonen, Fächer, Chips */
+  .sheet-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px; margin-top: 10px; }
+  .zone-title { font-weight: 600; font-size: .9rem; color: var(--accent); }
+  .drop { min-height: 54px; border: 2px dashed #b9cbe4; border-radius: 10px; padding: 6px; margin-top: 6px; background: #fbfcfe; }
+  .drop.okzone { border-color: #37b26d; background: #f3fbf6; }
+  .pool { min-height: 48px; border-radius: 10px; padding: 4px; margin-top: 8px; }
+  .pool-title { font-size: .82rem; color: var(--muted); margin-top: 10px; }
+  .chip { display: inline-block; background: #eef3fb; border: 1px solid #b9cbe4; border-radius: 999px; padding: 6px 14px; margin: 4px; cursor: grab; user-select: none; }
+  .chip.sel { outline: 2px solid var(--accent); background: #dbe7f7; }
+  .math .slot { display: inline-block; min-width: 3.4em; min-height: 1.8em; border: 2px dashed #b9cbe4; border-radius: 8px; text-align: center; padding: 2px 10px; vertical-align: middle; color: #5b6472; margin: 0 2px; }
+  .math .slot.filled { border-style: solid; border-color: #37b26d; color: inherit; }
+  .slot .chip, .drop .chip { margin: 2px 6px; }
+
+  .module-meta { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; align-items: baseline; }
+  .chip-label { font-size: .8rem; color: var(--muted); }
+
+  .explorer .slider-row { display: grid; grid-template-columns: 150px 1fr 90px; gap: 10px; align-items: center; margin: 8px 0; }
+  .explorer input[type=range] { width: 100%; }
+  .explorer .out { font-weight: 600; text-align: right; }
+
+  .charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin: 12px 0 4px; }
+  .chart { border: 1px solid var(--border); border-radius: 10px; padding: 10px; background: #fbfcfe; }
+  .chart-title { font-size: .84rem; color: var(--muted); margin-bottom: 6px; }
+  .chart canvas { width: 100%; height: 240px; display: block; cursor: crosshair; touch-action: none; }
+
+  table.stats { border-collapse: collapse; width: 100%; margin: 8px 0; }
+  table.stats td, table.stats th { border: 1px solid var(--border); padding: 8px 10px; font-size: .92rem; text-align: left; }
+  table.stats th { background: #f0f3f8; }
+
+  textarea { width: 100%; min-height: 70px; border: 1px solid var(--border); border-radius: 8px; padding: 10px; font: inherit; font-size: .93rem; }
+
+  details.teacher { margin-top: 24px; }
+  details.teacher summary { cursor: pointer; color: var(--muted); font-size: .9rem; }
+  details.teacher .card { margin-top: 10px; }
+
+  footer.src { color: var(--muted); font-size: .8rem; margin-top: 28px; }
+  footer.src p { margin: 4px 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <h1>Selbstlernumgebung: Federschwingungen — T = 2π·√(m/D)</h1>
+    <p>Kontexte: Wiegen einer Astronautin in der Schwerelosigkeit, Eichung des Messgeräts auf der Erde, Bungeesprung</p>
+  </header>
+
+  <nav class="tabs" id="tabs"></nav>
+  <div class="progressbar"><span id="bar"></span></div>
+
+  <section class="panel" id="panel-start">
+    <div class="card">
+      <h2>Lernziele</h2>
+      <p>Nach dieser Lerneinheit kannst du:</p>
+      <ul>
+        <li>die Periodendauer eines Federschwingers berechnen und die Formel nach m und D umstellen,</li>
+        <li>aus einer Messung (Anzahl der Schwingungen und Gesamtzeit) die Periodendauer bestimmen,</li>
+        <li>deinen eigenen Lernstand zu diesen Thema realistisch einschätzen und begründen.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h2>So arbeitest du mit dieser Umgebung</h2>
+      <ul>
+        <li><strong>Rechenblatt:</strong> Jede Rechenaufgabe ist ein interaktives Rechenblatt. Du ziehst die gegebenen Größen in das Feld Gegeben, wählst das Gesuchte und die passende Formel, schiebst die Zahlenwerte in die Fächer der Formel und gibst erst zum Schluss das Ergebnis ein. Führe die Rechnung parallel in deinem Heft aus.</li>
+        <li><strong>Antwort zuerst, Sicherheit danach:</strong> Du gibst deine Antwort ab und wirst erst dann gefragt, wie sicher du dir warst — danach erhältst du die Rückmeldung. So lernst du, deine eigene Sicherheit realistisch einzuschätzen.</li>
+        <li><strong>Gestufte Hinweise:</strong> Bei falschen Angaben erhältst du Hinweise zur Fehlersuche, dann Strategie-Hinweise. Die Musterrechnung erscheint erst, wenn du sie wirklich brauchst.</li>
+        <li><strong>Runden:</strong> Gib Endergebnisse auf höchstens zwei Nachkommastellen gerundet an (zum Beispiel 78,95). Rundungsbedingte kleine Abweichungen sind bei der Prüfung erlaubt.</li>
+        <li><strong>Dezimaltrennzeichen:</strong> Eingaben erfolgen mit Dezimalkomma (zum Beispiel 12,34). Ein Punkt wird automatisch in ein Komma umgewandelt.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h2>Starte mit einer kurzen Selbsteinschätzung</h2>
+      <p>Wie vertraut ist dir die Formel <span class="math" data-fm="T = 2\pi\sqrt{\frac{m}{D}}"></span> bereits?</p>
+      <div class="options" id="selfAssess">
+        <label><input type="radio" name="sa" value="1" /> <span>Ich kenne die Formel noch nicht oder kaum.</span></label>
+        <label><input type="radio" name="sa" value="2" /> <span>Ich habe die Formel schon gesehen, kann sie aber noch nicht anwenden.</span></label>
+        <label><input type="radio" name="sa" value="3" /> <span>Ich kann die Formel anwenden, bin aber bei Umstellungen unsicher.</span></label>
+        <label><input type="radio" name="sa" value="4" /> <span>Ich kann die Formel anwenden und umstellen.</span></label>
+      </div>
+      <p class="muted">Trage deine Einschätzung auch in dein Heft ein. In der Reflexion am Ende vergleichst du.</p>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-basics">
+    <div class="card">
+      <h2>Das Hookesche Gesetz — die Federkonstante D</h2>
+      <p>Kraft ist eine vektorielle Größe. Lenkt man eine Feder um die Auslenkung <span class="math" data-fm="\vec{s}"></span> aus — gemessen an einem orientierten Koordinatensystem, dessen x-Achse in Richtung der Auslenkung zeigt —, wirkt eine rücktreibende Kraft:</p>
+      <div class="formula math" data-fm="\vec{F}_\mathrm{H} = -D \cdot \vec{s}"></div>
+      <p>Das Minuszeichen sagt: Die Kraft ist der Auslenkung stets entgegengerichtet — sie zieht den Körper zurück zur Ruhelage. Für den Betrag der Kraft gilt:</p>
+      <div class="formula math" data-fm="F_\mathrm{H} = D \cdot s"></div>
+      <p>Die Proportionalitätskonstante <span class="math" data-fm="D"></span> heißt Federkonstante (Kraftkonstante). Ihre Einheit ist Newton pro Meter: <span class="math" data-fm="D = 292\,\mathrm{N/m}"></span> bedeutet, dass die Kraft für jeden Meter Dehnung um 292 Newton wächst. Je größer <span class="math" data-fm="D"></span>, desto härter die Feder.</p>
+    </div>
+    <div class="card">
+      <h2>Der Federschwinger — die Periodendauer</h2>
+      <p>Im Experiment habt ihr in der letzten Stunde gemessen: Je größer die Masse <span class="math" data-fm="m"></span>, desto langsamer schwingt der Körper; je größer die Federkonstante <span class="math" data-fm="D"></span>, desto schneller. Daraus folgt die Formel für die Periodendauer — die Dauer einer vollständigen Schwingung:</p>
+      <div class="formula math" data-fm="T = 2\pi\sqrt{\frac{m}{D}}"></div>
+      <p>Die Periodendauer hängt weder von der Amplitude ab noch vom Ortsfaktor <span class="math" data-fm="g"></span> — genau das macht die Formel für das Wiegen in der Schwerelosigkeit nutzbar.</p>
+      <p>Umgestellt nach den gesuchten Größen:</p>
+      <div class="formula math" data-fm="m = \frac{D\,T^2}{4\,\pi^2} \qquad\qquad D = \frac{4\,\pi^2\,m}{T^2}"></div>
+    </div>
+    <div class="card">
+      <h2>Periodendauer messen</h2>
+      <p>Weil eine einzelne Schwingung zu kurz ist für eine genaue Stoppuhr-Messung, misst man die Zeit für <span class="math" data-fm="n"></span> vollständige Schwingungen und teilt:</p>
+      <div class="formula math" data-fm="T = \frac{t_{\mathrm{ges}}}{n}"></div>
+      <p class="muted">Je mehr Schwingungen man erfasst, desto kleiner der Messfehler.</p>
+    </div>
+    <div class="card">
+      <h2>Teilschwingungen</h2>
+      <p>Manchmal entspricht eine gemessene Zeit nur einem Teil einer Schwingung. Eine halbe Schwingung — etwa von einem Umkehrpunkt zum anderen — dauert:</p>
+      <div class="formula math" data-fm="t = \frac{T}{2} = \pi\sqrt{\frac{m}{D}}"></div>
+      <p class="muted">Diese Beziehung brauchst du immer, wenn nur ein Teil der Schwingung betrachtet wird — etwa der Weg vom Absprungpunkt bis zum tiefsten Punkt beim Bungeesprung.</p>
+    </div>
+    <div class="card">
+      <h2>Schreibweise in Formeln</h2>
+      <ul>
+        <li><strong>Formelzeichen kursiv:</strong> Größen wie <span class="math" data-fm="m"></span>, <span class="math" data-fm="t"></span> oder <span class="math" data-fm="D"></span> werden kursiv gesetzt.</li>
+        <li><strong>Einheiten aufrecht:</strong> Einheiten wie <span class="math" data-fm="\mathrm{kg}"></span>, <span class="math" data-fm="\mathrm{s}"></span> oder <span class="math" data-fm="\mathrm{N/m}"></span> stehen aufrecht und ohne Leerzeichen innerhalb der Einheit.</li>
+        <li>Die Konstante <span class="math" data-fm="\pi"></span> und Zahlen werden aufrecht gesetzt (ISO 80000-2). Zwischen Zahlenwert und Einheit steht ein schmales Leerzeichen.</li>
+        <li>Dezimaltrennzeichen ist das Komma, nicht der Punkt.</li>
+      </ul>
+    </div>
+    <div class="card explorer">
+      <h2>Explorer: Wie hängt T von m und D ab?</h2>
+      <p>Verändere die Regler — oder klicke und ziehe direkt in den Diagrammen — und beobachte die Periodendauer. Notiere dir zwei Beobachtungen.</p>
+      <div class="slider-row"><label for="exM">Masse m</label><input type="range" id="exM" min="20" max="120" value="72" /><span class="out" id="exMOut">72 kg</span></div>
+      <div class="slider-row"><label for="exD">Federkonstante D</label><input type="range" id="exD" min="100" max="4000" value="292" /><span class="out" id="exDOut">292 N/m</span></div>
+      <div class="formula math" id="exOut"></div>
+      <div class="charts">
+        <div class="chart">
+          <div class="chart-title">Periodendauer T als Funktion der Masse m (bei aktueller Federkonstante D) — klicken oder ziehen</div>
+          <canvas id="chartM" aria-label="Diagramm: T in Abhängigkeit von m"></canvas>
+        </div>
+        <div class="chart">
+          <div class="chart-title">Periodendauer T als Funktion der Federkonstante D (bei aktueller Masse m) — klicken oder ziehen</div>
+          <canvas id="chartD" aria-label="Diagramm: T in Abhängigkeit von D"></canvas>
+        </div>
+      </div>
+      <p class="muted">Fragen zum Nachdenken: Verdoppelt sich T, wenn du m verdoppelst? Was passiert mit T, wenn D vervierfacht wird? Warum verläuft eine Kurve aufwärts gekrümmt und die andere stark abwärts?</p>
+    </div>
+    <div class="card">
+      <h2>Gerechnetes Beispiel — so sieht eine schülerkonforme Rechnung aus</h2>
+      <div class="muster show" style="margin-top: 0;">
+        <div class="m-title">Beispielrechnung</div>
+        <p><strong>Gegeben:</strong> <span class="math" data-fm="m = 50\,\mathrm{kg};\; D = 180\,\mathrm{N/m}"></span></p>
+        <p><strong>Gesucht:</strong> Periodendauer <span class="math" data-fm="T"></span></p>
+        <p><strong>Formel:</strong></p>
+        <p class="dm"><span class="math" data-fm="T = 2\pi\sqrt{\frac{m}{D}}"></span></p>
+        <p><strong>Einsetzen:</strong></p>
+        <p class="dm"><span class="math" data-fm="T = 2\pi \cdot \sqrt{\frac{50}{180}}\,\mathrm{s} = 2\pi \cdot 0{,}527\,\mathrm{s}"></span></p>
+        <p><strong>Ergebnis:</strong></p>
+        <p class="dm"><span class="math" data-fm="T \approx 3{,}31\,\mathrm{s}"></span></p>
+        <p><strong>Antwort:</strong> Der Körper benötigt für eine vollständige Schwingung rund 3,3 Sekunden.</p>
+      </div>
+      <p class="muted">Genau diese Struktur arbeitest du in den Rechenblättern ab: Gegeben, Gesucht, Formel, Einsetzen, Ergebnis.</p>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-m1">
+    <div class="card">
+      <div class="module-meta"><h2>Modul 1: Wiegen in der Schwerelosigkeit</h2><span class="chip-label" id="chip-m1"></span></div>
+      <p>Kontext: Bei Langzeitaufenthalten im Weltall bauen Muskeln und Knochen ab — deshalb muss die Besatzung ihre Körpermasse regelmäßig überwachen. Eine Badezimmerwaage versagt: Sie misst die Gewichtskraft, und die wirkt in der Schwerelosigkeit nicht. Die Station besitzt deshalb einen feder gelagerten Schwingstuhl nach dem Prinzip des Skylab-Stuhls. Die Federkonstante <span class="math" data-fm="D = 292\,\mathrm{N/m}"></span> wurde vor dem Start auf der Erde geeicht — wie, arbeitest du in Modul 2 auf. Aus der gemessenen Schwingungsdauer lässt sich so auf die Masse schließen.</p>
+      <p>Die Astronautin setzt sich in den Stuhl, wird nach unten gezogen und losgelassen. Die Messeinrichtung erfasst <span class="math" data-fm="n = 10"></span> vollständige Schwingungen in <span class="math" data-fm="t_{\mathrm{ges}} = 32{,}9\,\mathrm{s}"></span>.</p>
+      <p class="muted">Aufgabenfolge: Werte zuerst die Messung aus (Periodendauer), und bestimme danach mit der Formel aus dem Experiment die Masse der Astronautin.</p>
+    </div>
+    <div id="items-m1"></div>
+  </section>
+
+  <section class="panel" id="panel-m2">
+    <div class="card">
+      <div class="module-meta"><h2>Modul 2: Eichung des Messgeräts auf der Erde</h2><span class="chip-label" id="chip-m2"></span></div>
+      <p>Kontext: Du weißt inzwischen, dass die Schwingungsdauer nur von Masse und Federkonstante abhängt — nicht vom Ortsfaktor <span class="math" data-fm="g"></span>. Deshalb kann das Messgerät auf der Erde gebaut und dort geeicht werden, bevor es in die Raumstation fliegt. Problem: Für die verbaute Feder gibt es kein Datenblatt — die Federkonstante <span class="math" data-fm="D"></span> ist unbekannt. Die Lösung: Eine zertifizierte Eichmasse bekannter Masse <span class="math" data-fm="m_{\mathrm{E}} = 2{,}00\,\mathrm{kg}"></span> wird an die Feder gehängt und in Schwingung versetzt. Eine Lichtschranke erfasst <span class="math" data-fm="n = 20"></span> vollständige Schwingungen in <span class="math" data-fm="t_{\mathrm{ges}} = 10{,}4\,\mathrm{s}"></span>.</p>
+      <p class="muted">Aufgabenfolge: Bestimme zuerst die Schwingungsdauer, dann — durch Umstellen der Formel — die Federkonstante. Vergleiche dein Ergebnis mit dem Wert <span class="math" data-fm="D = 292\,\mathrm{N/m}"></span> aus Modul 1: So erklärt sich, woher dieser Wert stammt.</p>
+    </div>
+    <div id="items-m2"></div>
+  </section>
+
+  <section class="panel" id="panel-m3">
+    <div class="card">
+      <div class="module-meta"><h2>Modul 3: Bungeesprung</h2><span class="chip-label" id="chip-m3"></span></div>
+      <p>Kontext: Ein Springer (<span class="math" data-fm="m = 68\,\mathrm{kg}"></span>) springt von einer <span class="math" data-fm="25\,\mathrm{m}"></span> hohen Brücke an einem elastischen Bungeeseil mit Federkonstante <span class="math" data-fm="D = 80{,}0\,\mathrm{N/m}"></span>. Nach dem Sturz schwingt er am gestreckten Seil ruhig auf und ab — im Modell ist der Springer am Seil ein Federschwinger, der um seine Ruhelage schwingt.</p>
+      <p class="muted">Rechenpflicht ist die Schwingungsdauer. Danach folgt eine Zusatzaufgabe zum Hookeschen Gesetz in der Ruhelage — für alle, die schneller fertig sind. Die Zusatzaufgabe ist freiwillig.</p>
+    </div>
+    <div id="items-m3"></div>
+  </section>
+
+  <section class="panel" id="panel-reflect">
+    <div class="card">
+      <h2>Dein Lernstand</h2>
+      <table class="stats">
+        <tr><th>Kennzahl</th><th>Wert</th></tr>
+        <tr><td>Gelöste Pflichtaufgaben</td><td id="st-solved">0 / 9</td></tr>
+        <tr><td>Zusatzaufgabe (freiwillig) gelöst</td><td id="st-extra">nein</td></tr>
+        <tr><td>Davon ohne Fehler und ohne Hilfe</td><td id="st-first">0</td></tr>
+        <tr><td>Nutzung der Musterrechnung</td><td id="st-sol">0</td></tr>
+        <tr><td>Benutzte Hinweise (insgesamt)</td><td id="st-hints">0</td></tr>
+        <tr><td>Sicherheit und Ergebnis stimmten nicht überein</td><td id="st-calib">0</td></tr>
+      </table>
+      <p class="muted" id="st-calib-note"></p>
+    </div>
+    <div class="card">
+      <h2>Reflexion: Denke über dein Lernen nach</h2>
+      <p>1. Erkläre in eigenen Worten (zwei bis drei Sätze): Was besagt <span class="math" data-fm="T = 2\pi\sqrt{\frac{m}{D}}"></span> und unter welchen Modellannahmen gilt die Formel?</p>
+      <textarea data-reflect="1" placeholder="Deine Erklärung ..."></textarea>
+      <p>2. Welcher Fehler ist dir am häufigsten unterlaufen (zum Beispiel Quadrieren vergessen, Einheiten, Umstellen)? Wie erkennst du diesen Fehler künftig, bevor du ein Ergebnis abgibst?</p>
+      <textarea data-reflect="2" placeholder="Meine typische Fehlerquelle und mein Check-Schritt ..."></textarea>
+      <p>3. Vergleiche mit deiner Selbsteinschätzung vom Anfang: Was hat sich verändert? Setze dir ein konkretes Ziel für die nächste Lerneinheit.</p>
+      <textarea data-reflect="3" placeholder="Mein Ziel ..."></textarea>
+      <p class="muted">Hinweis: Diese Einträge bleiben nur auf dieser Seite gespeichert. Übertrage deine Antworten in dein Heft, wenn du sie aufheben möchtest.</p>
+    </div>
+    <div class="card">
+      <h2>Üben nach Bedarf</h2>
+      <p>Aufgaben, die du nicht fehlerfrei gelöst hast, kannst du gezielt wiederholen. Klicke auf den Button, um diese Aufgaben zurückzusetzen und sie ohne Hilfen erneut zu versuchen.</p>
+      <button class="btn secondary" id="btnRedo">Nicht fehlerfrei gelöste Aufgaben zurücksetzen</button>
+    </div>
+  </section>
+
+  <details class="teacher">
+    <summary>Hinweise für Lehrkräfte: Umgesetzte Prinzipien</summary>
+    <div class="card">
+      <p>Curricularer Anker: das Hookesche Gesetz in Vektorform (rücktreibende Kraft am orientierten Koordinatensystem, mit Minuszeichen und Betragsform) mit der Federkonstanten D als Kraftkonstante und die Periodendauer des Federschwingers T = 2π·√(m/D) als Grundlage; die halbe Schwingungsdauer wird nur als abgeleitete Beziehung T/2 geführt. Modulstruktur: Astronautin (Verständnis, Messung, Umstellen nach m), Eichung auf der Erde (Umstellen nach D), Bungeesprung (Vorwärtsrechnung von T als Rechenpflicht, danach das Hookesche Gesetz als freiwillige Zusatzaufgabe). Messwerte sind bewusst realistisch und nicht auf π normiert; Endergebnisse werden auf höchstens zwei Nachkommastellen gerundet, mit Rundungstoleranz bei der Prüfung; Antwortoptionen und Chips erscheinen gemischt. Die Astronauten-Apparatur ist historisch verbürgt (Skylab-Schwingstuhl; Thornton &amp; Ord, 1977; BMMD/SLAMMD auf der ISS: Smith &amp; Kaufman, 1998).</p>
+      <p>Feedback: Das Interaktive Tutorielle Feedbackmodell (ITF-Modell) ist je Schritt umgesetzt: multiple-try feedback mit Wissenskomponente zum Ergebnis, fehlerbezogene Hinweise zur Fehleridentifikation und -korrektur ohne unmittelbare Lösungsvorgabe, Strategie-Hinweise sowie die Musterrechnung erst nach ausgeschöpften Versuchen (Narciss, 2006, 2013).</p>
+      <p>Selbstregulation: Die Sicherheitsabfrage erfolgt nach der Antwort und vor der Rückmeldung (Kalibration); freie Modulwahl, Explorer-Phase und Reflexions- sowie Wiederholungsmöglichkeit fördern die Phasen selbstregulierten Lernens (Narciss, Proske &amp; Körndle, 2007).</p>
+      <p>Scaffolding: Das Rechenblatt externiert die schülerkonforme Rechenstruktur (Gegeben, Gesucht, Formel, Einsetzen, Ergebnis) als Drag-and-Drop-Arbeitsblatt; die vollständige Musterrechnung dient als Modell der Zielform.</p>
+      <p>Formelsatz: Mini-LaTeX-Renderer ohne externe Abhängigkeiten; Wurzelzeichen als skalierbare Vektorgrafik; Formelzeichen kursiv, Einheiten und die Konstante π aufrecht (gemäß ISO 80000); Dezimaltrennzeichen Komma.</p>
+    </div>
+  </details>
+
+  <footer class="src">
+    <p><strong>Urheberschaft und Lizenz:</strong> Copyright (c) 2026 Oliver Schlicht. Der HTML-Code dieser Lernumgebung wurde von Oliver Schlicht mit Unterstützung von Mistral AI (Vibe, Sprachmodell GLM) erstellt und als Open-Source-Projekt unter der <a href="https://opensource.org/licenses/MIT">MIT-Lizenz</a> veröffentlicht. Nach § 7 UrhG ist Urheber des Werkes der menschliche Schöpfer; der KI-Einsatz wird als Werkzeugunterstützung ausgewiesen.</p>
+    <p><strong>Quellen:</strong></p>
+    <p>Demtröder, W. (2015). Experimentalphysik 1: Mechanik und Wärme (5. Aufl.). Springer Spektrum.</p>
+    <p>Halliday, D., Resnick, R., &amp; Walker, J. (2017). Physik: Bachelor-Ausgabe. Wiley-VCH.</p>
+    <p>Narciss, S. (2006). Informatives tutorielles Feedback: Entwicklungs- und Evaluationsprinzipien auf der Basis instruktionspsychologischer Erkenntnisse. Waxmann.</p>
+    <p>Narciss, S. (2013). Designing and evaluating tutoring feedback strategies for digital learning environments on the basis of the interactive tutoring feedback model. Digital Education Review, 23, 7–26.</p>
+    <p>Narciss, S., Proske, A., &amp; Körndle, H. (2007). Promoting self-regulated learning in web-based learning environments. Computers in Human Behavior, 23(3), 1126–1144.</p>
+    <p>Smith, D., &amp; Kaufman, K. (1998). Space Linear Acceleration Mass Measurement Device (SLAMMD) for the Human Research Facility [Konferenzbeitrag]. SAE International.</p>
+    <p>Thornton, W. E., &amp; Ord, J. (1977). Physiological mass measurements in Skylab. In L. F. Dietlein (Hrsg.), Biomedical Results from Skylab (S. 373–380). NASA.</p>
+  </footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ================================================================
+     Mini-LaTeX-Renderer (ohne externe Abhängigkeiten)
+     - Mathematikschrift; Formelzeichen kursiv, Einheiten aufrecht
+     - Wurzel als skalierbare Vektorgrafik (kein Unicode-Zeichen)
+     - Operatoren mit korrektem Leerraum
+     - \slot{...} erzeugt ein Einsetzen-Fach im Rechenblatt
+     ================================================================ */
+  function mathCore(src) {
+    var pos = 0;
+    function isLetter(c) { return /[a-zA-Z]/.test(c); }
+    function atom(up) {
+      var c = src[pos];
+      if (c === "{") { pos++; return parseSeq(true, up); }
+      if (c === "\\") { return command(up); }
+      pos++;
+      if (isLetter(c)) { return up ? c : "<i>" + c + "</i>"; }
+      return c;
+    }
+    function opSpan(ch, cls) { return '<span class="' + (cls || "op") + '">' + ch + "</span>"; }
+    function command(up) {
+      pos++;
+      var c = src[pos];
+      if (c === ",") { pos++; return "&#8201;"; }
+      if (c === ";") { pos++; return "&#8201;&#8201;"; }
+      if (c === "!") { pos++; return ""; }
+      var name = "";
+      while (pos < src.length && isLetter(src[pos])) { name += src[pos]; pos++; }
+      if (name === "frac") {
+        var a = readGroup(up), b = readGroup(up);
+        return '<span class="frac"><span class="fr-t">' + a + '</span><span class="fr-b">' + b + "</span></span>";
+      }
+      if (name === "sqrt") {
+        var g = readGroup(up);
+        return '<span class="sqrt"><svg viewBox="0 0 16 32" preserveAspectRatio="none" aria-hidden="true"><path d="M2 17 L5 30 L13.5 1.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="under">' + g + "</span></span>";
+      }
+      if (name === "vec") {
+        var vg = readGroup(up);
+        return '<span class="vec">' + vg + "</span>";
+      }
+      if (name === "mathrm" || name === "text") { return readGroup(true); }
+      if (name === "slot") {
+        var raw = readRawGroup();
+        return '<span class="slot" data-label="' + raw + '">' + mathCore(raw) + "</span>";
+      }
+      if (name === "pi") return "&#960;";
+      if (name === "Delta") return "Δ";
+      if (name === "cdot") return opSpan("&#183;", "opn");
+      if (name === "times") return opSpan("&#215;", "opn");
+      if (name === "propto") return opSpan("&#8733;");
+      if (name === "approx") return opSpan("&#8776;");
+      if (name === "ne") return opSpan("&#8800;");
+      if (name === "quad" || name === "qquad") return "&nbsp;";
+      if (name === "left" || name === "right") {
+        while (pos < src.length && src[pos] === " ") pos++;
+        var d = src[pos];
+        if (d === "(" || d === ")" || d === "[" || d === "]") { pos++; return d; }
+        return "";
+      }
+      return "";
+    }
+    function readRawGroup() {
+      while (pos < src.length && src[pos] === " ") pos++;
+      if (src[pos] !== "{") { var c = src[pos] || ""; pos++; return c; }
+      pos++;
+      var depth = 1, out = "";
+      while (pos < src.length) {
+        var ch = src[pos];
+        if (ch === "{") depth++;
+        if (ch === "}") { depth--; if (depth === 0) { pos++; break; } }
+        out += ch;
+        pos++;
+      }
+      return out;
+    }
+    function readGroup(up) {
+      while (pos < src.length && src[pos] === " ") pos++;
+      if (src[pos] === "{") { pos++; return parseSeq(true, up); }
+      return atom(up);
+    }
+    function parseSeq(endBrace, up) {
+      var out = "";
+      while (pos < src.length) {
+        var c = src[pos];
+        if (c === "}" && endBrace) { pos++; return out; }
+        if (c === "{") { pos++; out += parseSeq(true, up); }
+        else if (c === "\\") { out += command(up); }
+        else if (c === "^" || c === "_") {
+          pos++;
+          var inner = atom(up);
+          out += (c === "^") ? "<sup>" + inner + "</sup>" : "<sub>" + inner + "</sub>";
+        }
+        else if (isLetter(c)) { out += up ? c : "<i>" + c + "</i>"; pos++; }
+        else if (c === "=" || c === "+" || c === "<" || c === ">") { out += opSpan(c); pos++; }
+        else if (c === "-") { out += opSpan("&#8722;"); pos++; }
+        else if (c === " ") { pos++; }
+        else if (c === "~") { out += "&nbsp;"; pos++; }
+        else { out += c; pos++; }
+      }
+      return out;
+    }
+    return parseSeq(false, false);
+  }
+  function renderLatex(src) { return '<span class="math">' + mathCore(src) + "</span>"; }
+
+  function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  function fmath(text) {
+    var parts = String(text).split("$");
+    var out = "";
+    for (var i = 0; i < parts.length; i++) {
+      out += (i % 2 === 0) ? esc(parts[i]) : renderLatex(parts[i]);
+    }
+    return out;
+  }
+  function renderAllStatic() {
+    document.querySelectorAll("[data-fm]").forEach(function (el) {
+      el.innerHTML = renderLatex(el.getAttribute("data-fm"));
+    });
+  }
+  var fmt = function (n) { return String(n).replace(".", ","); };
+
+  /* Fisher-Yates-Mischung: Antwortoptionen und Chips erscheinen in zufälliger Reihenfolge */
+  function shuffledIndices(n) {
+    var a = [], i, j, t;
+    for (i = 0; i < n; i++) a.push(i);
+    for (j = n - 1; j > 0; j--) {
+      i = Math.floor(Math.random() * (j + 1));
+      t = a[j]; a[j] = a[i]; a[i] = t;
+    }
+    return a;
+  }
+
+  /* ================================================================
+     Aufgabendaten
+     ================================================================ */
+  var ITEMS = [
+    { id: "q1", module: "m1", type: "mc", tag: "Verständnis",
+      prompt: "Warum zeigt eine gewöhnliche Badezimmerwaage in der Schwerelosigkeit keinen brauchbaren Wert?",
+      options: [
+        { text: "Weil die Astronautinnen und Astronauten im Weltall keine Masse mehr besitzen.", correct: false,
+          fb: "Diese Annahme ist falsch. Masse und Trägheit eines Körpers bleiben im Weltall vollständig erhalten — sie sind vom Gravitationsfeld unabhängig." },
+        { text: "Weil die Waage die Gewichtskraft misst, die in der Schwerelosigkeit nicht wirkt.", correct: true,
+          fb: "Richtig. Eine Waage misst die Gewichtskraft $F_{\\mathrm{G}} = m \\cdot g$ — das Produkt aus Masse und Ortsfaktor $g$. In der Schwerelosigkeit wirkt keine wirksame Gewichtskraft, die Waage zeigt null — obwohl die Masse unverändert ist." },
+        { text: "Weil es in der Raumstation überhaupt keine Gravitation gibt.", correct: false,
+          fb: "Das ist ein verbreitetes Missverständnis. Im niedrigen Erdorbit beträgt der Ortsfaktor noch etwa 90 Prozent des Wertes an der Erdoberfläche. Schwerelosigkeit entsteht, weil die Station mitsamt Besatzung frei um die Erde fällt." },
+        { text: "Weil elektronische Waagen im Vakuum der Kapsel nicht funktionieren.", correct: false,
+          fb: "Das ist nicht der Grund. Elektronische Waage funktionieren unabhängig vom Luftdruck. Entscheidend ist die fehlende wirksame Gewichtskraft." }
+      ]
+    },
+    { id: "q2", module: "m1", type: "sheet", tag: "Messung auswerten",
+      prompt: "Erster Schritt des Wiegens: Die Messeinrichtung hat $n = 10$ vollständige Schwingungen in $t_{\\mathrm{ges}} = 32{,}9\\,\\mathrm{s}$ erfasst. Bestimme die Periodendauer $T$ des Schwingstuhls.",
+      given: {
+        pool: [
+          { id: "cTges", latex: "t_{\\mathrm{ges}} = 32{,}9\\,\\mathrm{s}" },
+          { id: "cN", latex: "n = 10" },
+          { id: "cD", latex: "D = 292\\,\\mathrm{N/m}", note: "Die Federkonstante wird erst im zweiten Schritt gebraucht — hier geht es nur um die Messung." },
+          { id: "cG", latex: "g = 9{,}81\\,\\mathrm{m/s^2}", note: "Der Ortsfaktor geht in die Schwingungsdauer nicht ein." },
+          { id: "cHalb", latex: "t = 1{,}65\\,\\mathrm{s}", note: "Dieser Wert wurde nirgends gemessen — im Text stehen nur Gesamtzeit und Anzahl der Schwingungen." }
+        ],
+        accept: ["cTges", "cN"],
+        hint: "Gesucht ist die Dauer einer einzigen vollständigen Schwingung — teile die Gesamtzeit durch die Anzahl der Schwingungen."
+      },
+      sought: {
+        pool: [
+          { id: "sT", latex: "T" },
+          { id: "sM", latex: "m", note: "Die Masse kommt im zweiten Schritt — zunächst wird die Messung ausgewertet." },
+          { id: "sD", latex: "D", note: "Die Federkonstante ist bereits bekannt, nicht gesucht." },
+          { id: "sV", latex: "v", note: "Eine Geschwindigkeit ist hier nicht von Interesse." }
+        ],
+        accept: ["sT"]
+      },
+      formula: {
+        options: [
+          { latex: "T = \\frac{t_{\\mathrm{ges}}}{n}", correct: true, fb: "Richtig: Gesamtzeit geteilt durch die Anzahl der Schwingungen." },
+          { latex: "T = \\frac{n}{t_{\\mathrm{ges}}}", correct: false, fb: "Der Bruch ist gedreht — prüfe die Einheiten: herauskommen muss eine Zeit." },
+          { latex: "T = t_{\\mathrm{ges}} \\cdot n", correct: false, fb: "Geteilt, nicht multipliziert." },
+          { latex: "T = t_{\\mathrm{ges}} - n", correct: false, fb: "Eine Differenz aus Zeit und Stückzahl ergibt keine sinnvolle Größe." }
+        ],
+        hint: "Je mehr Schwingungen du misst, desto genauer — aber geteilt werden muss."
+      },
+      subst: null,
+      result: {
+        unit: "s", answer: 3.29, tol: 0.02,
+        bugs: [
+          { val: 32.9, hint: "Du hast nicht durch $n$ geteilt. Die Gesamtzeit von 32,9 s gehört zu allen 10 Schwingungen." },
+          { val: 0.304, hint: "Der Bruch ist gedreht: $T = t_{\\mathrm{ges}}/n$, nicht $n/t_{\\mathrm{ges}}$." }
+        ],
+        hint1: "Nutze $T = t_{\\mathrm{ges}}/n$ und rechne nach, welche Zeit auf eine einzelne Schwingung entfällt.",
+        hint2: "Zwischenschritt: $T = 32{,}9\\,\\mathrm{s} / 10$."
+      },
+      muster: {
+        given: "$t_{\\mathrm{ges}} = 32{,}9\\,\\mathrm{s};\\; n = 10$",
+        sought: "Periodendauer $T$",
+        formula: "$T = \\frac{t_{\\mathrm{ges}}}{n}$",
+        substitute: "$T = \\frac{32{,}9\\,\\mathrm{s}}{10}$",
+        result: "$T = 3{,}29\\,\\mathrm{s}$",
+        answer: "Der Schwingstuhl benötigt für eine vollständige Schwingung rund 3,3 Sekunden."
+      }
+    },
+    { id: "q3", module: "m1", type: "sheet", tag: "Schülerrechnung",
+      prompt: "Zweiter Schritt: Bestimme mit der Periodendauer aus der Messung und der bekannten Federkonstante die Masse $m$ der Astronautin.",
+      given: {
+        pool: [
+          { id: "cD", latex: "D = 292\\,\\mathrm{N/m}" },
+          { id: "cT", latex: "T = 3{,}29\\,\\mathrm{s}" },
+          { id: "cN", latex: "n = 10", note: "Die Anzahl der Schwingungen steckt bereits in der Periodendauer $T$." },
+          { id: "cTges", latex: "t_{\\mathrm{ges}} = 32{,}9\\,\\mathrm{s}", note: "Die Gesamtzeit steckt ebenfalls bereits in $T$." },
+          { id: "cG", latex: "g = 9{,}81\\,\\mathrm{m/s^2}", note: "Der Ortsfaktor geht in die Schwingungsdauer nicht ein." }
+        ],
+        accept: ["cD", "cT"],
+        hint: "Aus der Messung kennst du bereits $T$ — für die Masse brauchst du $T$ und $D$."
+      },
+      sought: {
+        pool: [
+          { id: "sM", latex: "m" },
+          { id: "sT", latex: "T", note: "$T$ hast du bereits berechnet — gesucht ist jetzt die Masse." },
+          { id: "sD", latex: "D", note: "Die Federkonstante ist gegeben, nicht gesucht." }
+        ],
+        accept: ["sM"]
+      },
+      formula: {
+        options: [
+          { latex: "m = \\frac{D\\,T^2}{4\\,\\pi^2}", correct: true, fb: "Richtig. Löse $T = 2\\pi\\sqrt{m/D}$ nach $m$ auf: quadrieren und den Faktor $4\\pi^2$ beachten." },
+          { latex: "m = \\frac{D\\,T^2}{\\pi^2}", correct: false, fb: "Im Nenner fehlt der Faktor 4 — er stammt vom Quadrieren von $2\\pi$." },
+          { latex: "m = \\frac{4\\,\\pi^2\\,D}{T^2}", correct: false, fb: "Der Bruch ist gestürzt — prüfe die Umstellung Schritt für Schritt." },
+          { latex: "m = \\frac{D\\,T}{4\\,\\pi^2}", correct: false, fb: "Das Quadrat von $T$ fehlt." }
+        ],
+        hint: "Quadriere beide Seiten von $T = 2\\pi\\sqrt{m/D}$ und löse nach $m$ auf."
+      },
+      subst: {
+        template: "m = \\frac{\\slot{D} \\cdot \\slot{T}^2}{4\\,\\pi^2}",
+        accept: { "D": "vD", "T": "vT" },
+        pool: [
+          { id: "vD", latex: "292\\,\\mathrm{N/m}" },
+          { id: "vT", latex: "3{,}29\\,\\mathrm{s}" },
+          { id: "vTges", latex: "32{,}9\\,\\mathrm{s}", note: "Das ist die Gesamtzeit aller 10 Schwingungen — in der Formel steht die Periodendauer." },
+          { id: "vG", latex: "9{,}81\\,\\mathrm{m/s^2}", note: "Der Ortsfaktor geht in diese Rechnung nicht ein." }
+        ],
+        hint: "Ziehe zu jedem Formelzeichen den zugehörigen Messwert: zur Federkonstante 292 N/m, zur Periodendauer 3,29 s."
+      },
+      result: {
+        unit: "kg", answer: 80.06, tol: 1.5,
+        bugs: [
+          { val: 320, hint: "Der Faktor 4 im Nenner fehlt — er stammt vom Quadrieren von $2\\pi$. Prüfe: $m = D\\,T^2/(4\\pi^2)$." },
+          { val: 24.3, hint: "Das Quadrat von $T$ fehlt." }
+        ],
+        hint1: "Rechne schrittweise: erst $T^2$, dann $D \\cdot T^2$, dann teile durch $4\\pi^2 \\approx 39{,}5$.",
+        hint2: "Zwischenschritt: $T^2 = (3{,}29)^2 \\approx 10{,}8$. Danach: $m = 292 \\cdot 10{,}8 / 39{,}5$."
+      },
+      muster: {
+        given: "$D = 292\\,\\mathrm{N/m};\\; T = 3{,}29\\,\\mathrm{s}$",
+        sought: "Masse $m$ der Astronautin",
+        formula: "$m = \\frac{D\\,T^2}{4\\,\\pi^2}$",
+        substitute: "$m = \\frac{292 \\cdot (3{,}29)^2}{4\\,\\pi^2}\\,\\mathrm{kg}$",
+        result: "$m \\approx 80{,}06\\,\\mathrm{kg}$",
+        answer: "Die Astronautin hat eine Masse von rund 80 Kilogramm — so wird die Körpermasse in der Schwerelosigkeit überwacht."
+      }
+    },
+    { id: "q4", module: "m1", type: "mc", tag: "Verständnis",
+      prompt: "Warum funktioniert das Schwingungsverfahren in der Schwerelosigkeit, obwohl eine Federwaage versagt?",
+      options: [
+        { text: "Die Periodendauer hängt nur von träger Masse und Federkonstante ab, nicht vom Ortsfaktor $g$.", correct: true,
+          fb: "Richtig. Die Trägheit einer Masse ist unabhängig vom Ortsfaktor. Eine größere Masse schwingt langsamer — im Weltall genauso wie auf der Erde. Genau darauf beruht die Messung." },
+        { text: "Die Feder erzeugt in der Schwerelosigkeit eine künstliche Gravitation.", correct: false,
+          fb: "Eine Feder erzeugt keine Gravitation. Sie übt lediglich eine Rückstellkraft aus, sobald sie gedehnt oder gestaucht wird." },
+        { text: "In der Schwerelosigkeit schwingt jeder Körper mit derselben Dauer, unabhängig von seiner Masse.", correct: false,
+          fb: "Das Gegenteil ist der Fall: Genau weil die Periodendauer von der Masse abhängt, kann man aus ihr die Masse berechnen." },
+        { text: "Das Verfahren funktioniert nur, weil die Raumstation rotiert.", correct: false,
+          fb: "Die Messung erfordert keine Rotation. Sie beruht allein auf dem Zusammenhang zwischen Periodendauer, Masse und Federkonstante." }
+      ]
+    },
+    { id: "q5", module: "m2", type: "sheet", tag: "Messung auswerten",
+      prompt: "Erster Schritt der Eichung: Die Lichtschranke hat $n = 20$ vollständige Schwingungen der Eichmasse in $t_{\\mathrm{ges}} = 10{,}4\\,\\mathrm{s}$ erfasst. Bestimme die Schwingungsdauer $T$.",
+      given: {
+        pool: [
+          { id: "cTges", latex: "t_{\\mathrm{ges}} = 10{,}4\\,\\mathrm{s}" },
+          { id: "cN", latex: "n = 20" },
+          { id: "cM", latex: "m_{\\mathrm{E}} = 2{,}00\\,\\mathrm{kg}", note: "Die Masse der Eichmasse wird erst im zweiten Schritt gebraucht — hier geht es nur um die Messung." },
+          { id: "cD", latex: "D = 292\\,\\mathrm{N/m}", note: "Die Federkonstante ist hier noch unbekannt — sie ist gerade das Ziel der Eichung und kann nicht gegeben sein." },
+          { id: "cG", latex: "g = 9{,}81\\,\\mathrm{m/s^2}", note: "Der Ortsfaktor geht in die Schwingungsdauer nicht ein." }
+        ],
+        accept: ["cTges", "cN"],
+        hint: "Gesucht ist die Dauer einer einzelnen vollständigen Schwingung — teile die Gesamtzeit durch die Anzahl der Schwingungen."
+      },
+      sought: {
+        pool: [
+          { id: "sT", latex: "T" },
+          { id: "sD", latex: "D", note: "Die Federkonstante ist das Ziel des nächsten Schritts — hier wird zunächst die Messung ausgewertet." },
+          { id: "sM", latex: "m_{\\mathrm{E}}", note: "Die Masse der Eichmasse ist bekannt — sie wird nicht gesucht." }
+        ],
+        accept: ["sT"]
+      },
+      formula: {
+        options: [
+          { latex: "T = \\frac{t_{\\mathrm{ges}}}{n}", correct: true, fb: "Richtig: Gesamtzeit geteilt durch die Anzahl der Schwingungen." },
+          { latex: "T = \\frac{n}{t_{\\mathrm{ges}}}", correct: false, fb: "Der Bruch ist gedreht — prüfe die Einheiten: herauskommen muss eine Zeit." },
+          { latex: "T = t_{\\mathrm{ges}} \\cdot n", correct: false, fb: "Geteilt, nicht multipliziert." },
+          { latex: "T = t_{\\mathrm{ges}} - n", correct: false, fb: "Eine Differenz aus Zeit und Stückzahl ergibt keine sinnvolle Größe." }
+        ],
+        hint: "Je mehr Schwingungen man erfasst, desto genauer die Messung — aber geteilt werden muss."
+      },
+      subst: null,
+      result: {
+        unit: "s", answer: 0.52, tol: 0.01,
+        bugs: [
+          { val: 10.4, hint: "Du hast nicht durch $n$ geteilt. Die Gesamtzeit von 10,4 s gehört zu allen 20 Schwingungen." },
+          { val: 1.92, hint: "Der Bruch ist gedreht: $T = t_{\\mathrm{ges}}/n$, nicht $n/t_{\\mathrm{ges}}$." }
+        ],
+        hint1: "Nutze $T = t_{\\mathrm{ges}}/n$ und rechne nach, welche Zeit auf eine einzelne Schwingung entfällt.",
+        hint2: "Zwischenschritt: $T = 10{,}4\\,\\mathrm{s} / 20$."
+      },
+      muster: {
+        given: "$t_{\\mathrm{ges}} = 10{,}4\\,\\mathrm{s};\\; n = 20$",
+        sought: "Schwingungsdauer $T$",
+        formula: "$T = \\frac{t_{\\mathrm{ges}}}{n}$",
+        substitute: "$T = \\frac{10{,}4\\,\\mathrm{s}}{20}$",
+        result: "$T = 0{,}52\\,\\mathrm{s}$",
+        answer: "Die Eichmasse schwingt mit einer Schwingungsdauer von 0,52 Sekunden."
+      }
+    },
+    { id: "q6", module: "m2", type: "sheet", tag: "Eichung — Umstellen",
+      prompt: "Zweiter Schritt: Bestimme mit der Masse der Eichmasse und der Schwingungsdauer aus dem ersten Schritt die Federkonstante $D$ der Feder — damit ist das Gerät geeicht.",
+      given: {
+        pool: [
+          { id: "cM", latex: "m_{\\mathrm{E}} = 2{,}00\\,\\mathrm{kg}" },
+          { id: "cT", latex: "T = 0{,}52\\,\\mathrm{s}" },
+          { id: "cN", latex: "n = 20", note: "Die Anzahl der Schwingungen steckt bereits in $T$." },
+          { id: "cTges", latex: "t_{\\mathrm{ges}} = 10{,}4\\,\\mathrm{s}", note: "Die Gesamtzeit steckt ebenfalls bereits in $T$." },
+          { id: "cG", latex: "g = 9{,}81\\,\\mathrm{m/s^2}", note: "Der Ortsfaktor geht in die Schwingungsdauer nicht ein — deshalb gilt die Eichung auf der Erde auch für den Einsatz im Weltall." }
+        ],
+        accept: ["cM", "cT"],
+        hint: "Für die Federkonstante brauchst du die Masse der Eichmasse und die Schwingungsdauer."
+      },
+      sought: {
+        pool: [
+          { id: "sD", latex: "D" },
+          { id: "sT", latex: "T", note: "$T$ hast du bereits berechnet — gesucht ist jetzt die Federkonstante." },
+          { id: "sM", latex: "m_{\\mathrm{E}}", note: "Die Masse der Eichmasse ist gegeben, nicht gesucht." }
+        ],
+        accept: ["sD"]
+      },
+      formula: {
+        options: [
+          { latex: "D = \\frac{4\\,\\pi^2\\,m}{T^2}", correct: true, fb: "Richtig. Löse $T = 2\\pi\\sqrt{m/D}$ nach $D$ auf — quadrieren liefert den Faktor $4\\pi^2$." },
+          { latex: "D = \\frac{\\pi^2\\,m}{T^2}", correct: false, fb: "Der Faktor 4 fehlt — er stammt vom Quadrieren von $2\\pi$." },
+          { latex: "D = \\frac{T^2\\,m}{4\\,\\pi^2}", correct: false, fb: "Der Bruch ist gestürzt — prüfe die Umstellung." },
+          { latex: "D = \\frac{4\\,\\pi^2\\,m}{T}", correct: false, fb: "Das Quadrat von $T$ fehlt." }
+        ],
+        hint: "Quadriere $T = 2\\pi\\sqrt{m/D}$ und bringe $D$ auf die andere Seite."
+      },
+      subst: {
+        template: "D = \\frac{4\\,\\pi^2 \\cdot \\slot{m}}{\\slot{T}^2}",
+        accept: { "m": "vM", "T": "vT" },
+        pool: [
+          { id: "vM", latex: "2{,}00\\,\\mathrm{kg}" },
+          { id: "vT", latex: "0{,}52\\,\\mathrm{s}" },
+          { id: "vTges", latex: "10{,}4\\,\\mathrm{s}", note: "Das ist die Gesamtzeit aller 20 Schwingungen — in der Formel steht die Schwingungsdauer." },
+          { id: "vG", latex: "9{,}81\\,\\mathrm{m/s^2}", note: "Der Ortsfaktor geht in diese Rechnung nicht ein." }
+        ],
+        hint: "Zu $m$ gehört die Masse der Eichmasse, zu $T$ die Schwingungsdauer aus dem ersten Schritt."
+      },
+      result: {
+        unit: "N/m", answer: 292.08, tol: 5,
+        bugs: [
+          { val: 73, hint: "Der Faktor 4 fehlt — prüfe: $D = 4\\pi^2 m/T^2$." },
+          { val: 151.8, hint: "Das Quadrat von $T$ im Nenner fehlt." }
+        ],
+        hint1: "Rechne schrittweise: erst $4\\pi^2 \\approx 39{,}5$, dann $39{,}5 \\cdot 2{,}00$, dann teile durch $T^2$.",
+        hint2: "Zwischenschritt: $T^2 = (0{,}52)^2 \\approx 0{,}27\\,\\mathrm{s^2}$. Danach: $D = 39{,}5 \\cdot 2{,}00 / 0{,}27$."
+      },
+      muster: {
+        given: "$m_{\\mathrm{E}} = 2{,}00\\,\\mathrm{kg};\\; T = 0{,}52\\,\\mathrm{s}$",
+        sought: "Federkonstante $D$",
+        formula: "$D = \\frac{4\\,\\pi^2\\,m}{T^2}$",
+        substitute: "$D = \\frac{4\\,\\pi^2 \\cdot 2{,}00}{(0{,}52)^2}\\,\\mathrm{N/m}$",
+        result: "$D \\approx 292{,}08\\,\\mathrm{N/m}$",
+        answer: "Die Feder hat eine Federkonstante von rund 292 Newton pro Meter — der Wert aus Modul 1 (dort gerundet angegeben). Damit ist das Gerät geeicht."
+      }
+    },
+    { id: "q7", module: "m2", type: "mc", tag: "Verhältnisrechnung",
+      prompt: "Kontrolle der Eichung: Es werden zwei weitere zertifizierte Eichmassen geprüft. Die Eichmasse mit $m_1 = 1{,}00\\,\\mathrm{kg}$ schwingt an der geeichten Feder mit $T_1 = 0{,}37\\,\\mathrm{s}$. Welche Schwingungsdauer $T_2$ erwartet man für die Eichmasse mit $m_2 = 4{,}00\\,\\mathrm{kg}$?",
+      options: [
+        { text: "etwa 0,74 s", correct: true,
+          fb: "Richtig. Aus $T \\propto \\sqrt{m}$ folgt: Die vierfache Masse schwingt doppelt so langsam — $T_2 = 0{,}37\\,\\mathrm{s} \\cdot \\sqrt{4} = 0{,}74\\,\\mathrm{s}$. Die Probe mit der geeichten Feder bestätigt es: $T_2 = 2\\pi\\sqrt{4{,}00/292} \\approx 0{,}74\\,\\mathrm{s}$." },
+        { text: "etwa 1,48 s", correct: false,
+          fb: "Das wäre eine lineare Proportion $T \\propto m$. Es gilt aber $T \\propto \\sqrt{m}$ — die Wurzel dämpft den Anstieg: $\\sqrt{4} = 2$, nicht $4$." },
+        { text: "etwa 0,19 s", correct: false,
+          fb: "Das ist die falsche Richtung: Eine größere Masse schwingt langsamer, nicht schneller." },
+        { text: "genau 0,37 s — die Schwingungsdauer ist unabhängig von der Masse.", correct: false,
+          fb: "Unabhängig ist $T$ vom Ortsfaktor — nicht von der Masse. Genau weil $T$ von der Masse abhängt, kann das Gerät überhaupt Masse messen." }
+      ]
+    },
+    { id: "q8", module: "m3", type: "sheet", tag: "Schwingungsdauer berechnen",
+      prompt: "Hauptaufgabe: Der Springer ist am gestreckten Seil ein Federschwinger und schwingt nach dem Sturz um seine Ruhelage. Berechne die Schwingungsdauer $T$.",
+      given: {
+        pool: [
+          { id: "cM", latex: "m = 68\\,\\mathrm{kg}" },
+          { id: "cD", latex: "D = 80{,}0\\,\\mathrm{N/m}" },
+          { id: "cG", latex: "g = 9{,}81\\,\\mathrm{m/s^2}", note: "Überraschend, aber richtig: Der Ortsfaktor geht in die Schwingungsdauer nicht ein — der Schwinger schwingt um seine Ruhelage." },
+          { id: "cH", latex: "h = 25\\,\\mathrm{m}", note: "Die Höhe der Brücke geht in die Schwingungsdauer nicht ein — $T$ hängt nur von $m$ und $D$ ab." }
+        ],
+        accept: ["cM", "cD"],
+        hint: "Für die Schwingungsdauer brauchst du nur Masse und Federkonstante — wie im Explorer aus den Grundlagen."
+      },
+      sought: {
+        pool: [
+          { id: "sT", latex: "T" },
+          { id: "sS", latex: "s", note: "Die Seildehnung ist die Zusatzaufgabe — hier ist die Schwingungsdauer gesucht." },
+          { id: "sF", latex: "F_{\\mathrm{Seil}}", note: "Um die Seilkraft geht es erst in der Zusatzaufgabe." }
+        ],
+        accept: ["sT"]
+      },
+      formula: {
+        options: [
+          { latex: "T = 2\\pi\\sqrt{\\frac{m}{D}}", correct: true, fb: "Richtig — die Formel aus dem Vorstunden-Experiment, hier einmal in Vorwärtsrichtung angewendet." },
+          { latex: "T = 2\\pi\\sqrt{\\frac{D}{m}}", correct: false, fb: "Der Bruch steht gedreht — prüfe die Einheiten unter der Wurzel: $\\mathrm{kg}/(\\mathrm{N/m})$ ergibt $\\mathrm{s^2}$." },
+          { latex: "T = 2\\pi \\cdot \\frac{m}{D}", correct: false, fb: "Die Wurzel fehlt." },
+          { latex: "T = \\sqrt{\\frac{m}{D}}", correct: false, fb: "Der Faktor $2\\pi$ fehlt." }
+        ],
+        hint: "Es gilt $T = 2\\pi\\sqrt{m/D}$ — beide gegebenen Größen gehören unter die Wurzel."
+      },
+      subst: {
+        template: "T = 2\\pi\\sqrt{\\frac{\\slot{m}}{\\slot{D}}}",
+        accept: { "m": "vM", "D": "vD" },
+        pool: [
+          { id: "vM", latex: "68\\,\\mathrm{kg}" },
+          { id: "vD", latex: "80{,}0\\,\\mathrm{N/m}" },
+          { id: "vG", latex: "9{,}81\\,\\mathrm{m/s^2}", note: "Der Ortsfaktor geht hier nicht ein." },
+          { id: "vH", latex: "25\\,\\mathrm{m}", note: "Die Brückenhöhe steht in keiner Formel für die Schwingungsdauer." }
+        ],
+        hint: "Zu $m$ gehört 68 kg, zu $D$ gehört 80,0 N/m."
+      },
+      result: {
+        unit: "s", answer: 5.8, tol: 0.06,
+        bugs: [
+          { val: 5.34, hint: "Du hast die Wurzel vergessen — ziehe aus $m/D = 0{,}85$ erst die Wurzel ($\\approx 0{,}92$), dann multipliziere mit $2\\pi$." },
+          { val: 6.82, hint: "Der Bruch unter der Wurzel ist gedreht: $m/D$, nicht $D/m$." },
+          { val: 0.92, hint: "Das ist nur $\\sqrt{m/D}$ — der Faktor $2\\pi$ fehlt." }
+        ],
+        hint1: "Rechne schrittweise: erst $m/D$, dann die Wurzel, dann mal $2\\pi$.",
+        hint2: "Zwischenschritt: $m/D = 0{,}85$, also $\\sqrt{0{,}85} \\approx 0{,}922$. Danach: $T = 2\\pi \\cdot 0{,}922\\,\\mathrm{s}$."
+      },
+      muster: {
+        given: "$m = 68\\,\\mathrm{kg};\\; D = 80{,}0\\,\\mathrm{N/m}$",
+        sought: "Schwingungsdauer $T$",
+        formula: "$T = 2\\pi\\sqrt{\\frac{m}{D}}$",
+        substitute: "$T = 2\\pi \\cdot \\sqrt{\\frac{68}{80{,}0}}\\,\\mathrm{s} = 2\\pi \\cdot 0{,}922\\,\\mathrm{s}$",
+        result: "$T \\approx 5{,}80\\,\\mathrm{s}$",
+        answer: "Der Springer braucht für ein vollständiges Auf und Ab rund 5,8 Sekunden. Bis zum tiefsten Punkt — eine halbe Schwingung — vergeht davon etwa die Hälfte: rund 2,9 Sekunden."
+      }
+    },
+    { id: "q9", module: "m3", type: "sheet", extra: true, tag: "Zusatzaufgabe: Hookesches Gesetz",
+      prompt: "Zusatzaufgabe für schnelle Rechnerinnen und Rechner: In der Ruhelage hängt der Springer ruhig am Seil — Seilkraft (Federkraft) und Gewichtskraft heben sich auf. Berechne, um welche Strecke $s$ das Seil in der Ruhelage gedehnt ist. Hier musst du umdenken: erst Kräftegleichgewicht, dann Hookesches Gesetz.",
+      given: {
+        pool: [
+          { id: "cM", latex: "m = 68\\,\\mathrm{kg}" },
+          { id: "cG", latex: "g = 9{,}81\\,\\mathrm{m/s^2}" },
+          { id: "cD", latex: "D = 80{,}0\\,\\mathrm{N/m}" },
+          { id: "cT", latex: "T = 5{,}80\\,\\mathrm{s}", note: "Für die Gleichgewichtsbedingung brauchst du keine Zeit." }
+        ],
+        accept: ["cM", "cG", "cD"],
+        hint: "In der Ruhelage gilt Kräftegleichgewicht: $D \\cdot s = m \\cdot g$. Du brauchst alle drei Größen."
+      },
+      sought: {
+        pool: [
+          { id: "sS", latex: "s" },
+          { id: "sT", latex: "T", note: "$T$ hast du bereits berechnet — gesucht ist die Seildehnung." },
+          { id: "sF", latex: "F_{\\mathrm{Seil}}", note: "Die Seilkraft ist ein Zwischenschritt — gesucht ist die Strecke." }
+        ],
+        accept: ["sS"]
+      },
+      formula: {
+        options: [
+          { latex: "s = \\frac{m \\cdot g}{D}", correct: true, fb: "Richtig. Aus dem Kräftegleichgewicht $D \\cdot s = m \\cdot g$ folgt $s = m\\,g/D$ — hier wirkt das Hookesche Gesetz." },
+          { latex: "s = \\frac{m}{D}", correct: false, fb: "Die Gewichtskraft fehlt — der Ortsfaktor $g$ wurde nicht verwendet." },
+          { latex: "s = \\frac{D}{m \\cdot g}", correct: false, fb: "Der Bruch ist gestürzt — prüfe das Kräftegleichgewicht $D\\,s = m\\,g$." },
+          { latex: "s = \\frac{m \\cdot D}{g}", correct: false, fb: "Diese Kombination ergibt keine Länge — kontrolliere die Einheiten." }
+        ],
+        hint: "Stelle das Kräftegleichgewicht auf: Seilkraft $D \\cdot s$ gleich Gewichtskraft $m \\cdot g$."
+      },
+      subst: {
+        template: "s = \\frac{\\slot{m} \\cdot \\slot{g}}{\\slot{D}}",
+        accept: { "m": "vM", "g": "vG", "D": "vD" },
+        pool: [
+          { id: "vM", latex: "68\\,\\mathrm{kg}" },
+          { id: "vG", latex: "9{,}81\\,\\mathrm{m/s^2}" },
+          { id: "vD", latex: "80{,}0\\,\\mathrm{N/m}" },
+          { id: "vT", latex: "5{,}80\\,\\mathrm{s}", note: "Eine Zeit gehört nicht in diese Formel." }
+        ],
+        hint: "Zu $m$ gehört 68 kg, zu $g$ der Ortsfaktor, zu $D$ die Seil-Federkonstante."
+      },
+      result: {
+        unit: "m", answer: 8.34, tol: 0.1,
+        bugs: [
+          { val: 0.85, hint: "Du hast $m/D$ berechnet — die Gewichtskraft $m \\cdot g$ fehlt." },
+          { val: 0.12, hint: "Der Bruch ist gestürzt — prüfe: $s = m\\,g/D$." }
+        ],
+        hint1: "Nutze $s = m\\,g/D$ mit allen drei gegebenen Größen.",
+        hint2: "Zwischenschritt: $m \\cdot g = 68 \\cdot 9{,}81 \\approx 667\\,\\mathrm{N}$. Danach: $s = 667/80{,}0$."
+      },
+      muster: {
+        given: "$m = 68\\,\\mathrm{kg};\\; g = 9{,}81\\,\\mathrm{m/s^2};\\; D = 80{,}0\\,\\mathrm{N/m}$",
+        sought: "Seildehnung $s$ in der Ruhelage",
+        formula: "$s = \\frac{m \\cdot g}{D}$",
+        substitute: "$s = \\frac{68 \\cdot 9{,}81}{80{,}0}\\,\\mathrm{m}$",
+        result: "$s \\approx 8{,}34\\,\\mathrm{m}$",
+        answer: "In der Ruhelage ist das Seil um rund 8,34 Meter gedehnt. Der tiefste Punkt des Sprungs liegt noch einmal so weit tiefer — die Brücke muss dafür also hoch genug sein."
+      }
+    },
+    { id: "q10", module: "m3", type: "mc", tag: "Modellgrenzen",
+      prompt: "Warum weicht ein realer Bungeesprung vom hier berechneten Modell ab?",
+      options: [
+        { text: "Reale Seile dämpfen die Bewegung: Bei jedem Durchgang geht Energie verloren, die Schwingung klingt ab.", correct: true,
+          fb: "Richtig. Die Formel gilt für die ungedämpfte Schwingung nur näherungsweise. Mit jedem Durchgang wird der Ausschlag kleiner." },
+        { text: "Die Formel gilt auch realerweise exakt, weil Seile stets Hookesche Federn sind.", correct: false,
+          fb: "Reale Seile verhalten sich nur näherungsweise linear. Insbesondere beim ersten Dehnen weicht die Kennlinie vom Hookeschen Gesetz ab." },
+        { text: "Der Unterschied entsteht allein dadurch, dass der Springer nicht punktförmig ist.", correct: false,
+          fb: "Die ausgedehnte Körpermasse spielt eine Rolle, ist aber nicht der wichtigste Effekt. Entscheidender sind Dämpfung und die nichtlineare Seilkennlinie." },
+        { text: "Real ist die Schwingungsdauer größer, weil der Ortsfaktor im freien Fall wirkt.", correct: false,
+          fb: "Der Ortsfaktor geht in die Schwingungsdauer gar nicht ein — der Federschwinger schwingt um die Ruhelage unabhängig von $g$." }
+      ]
+    }
+  ];
+
+  var MODULES = [
+    { id: "m1", panel: "panel-m1", container: "items-m1" },
+    { id: "m2", panel: "panel-m2", container: "items-m2" },
+    { id: "m3", panel: "panel-m3", container: "items-m3" }
+  ];
+
+  function freshState() {
+    return { tries: [0, 0, 0, 0], wrong: false, helpUsed: false, hintClicks: 0, solved: false, firstTry: false, solutionShown: false, confidence: null };
+  }
+  var state = {};
+  ITEMS.forEach(function (it) { state[it.id] = freshState(); });
+
+  function closeTo(a, b, tol) { return Math.abs(a - b) <= tol; }
+  function sameSet(a, b) {
+    if (a.length !== b.length) return false;
+    return a.slice().sort().join(",") === b.slice().sort().join(",");
+  }
+
+  // ---------- Navigation ----------
+  var tabsEl = document.getElementById("tabs");
+  var navDefs = [
+    { key: "panel-start", label: "Start" },
+    { key: "panel-basics", label: "Grundlagen" },
+    { key: "panel-m1", label: "Modul 1" },
+    { key: "panel-m2", label: "Modul 2" },
+    { key: "panel-m3", label: "Modul 3" },
+    { key: "panel-reflect", label: "Reflexion" }
+  ];
+  navDefs.forEach(function (n) {
+    var b = document.createElement("button");
+    b.textContent = n.label;
+    b.dataset.target = n.key;
+    if (n.key.indexOf("panel-m") === 0) {
+      var dot = document.createElement("span");
+      dot.className = "done";
+      b.appendChild(dot);
+    }
+    b.addEventListener("click", function () { showPanel(n.key); });
+    tabsEl.appendChild(b);
+  });
+
+  function showPanel(id) {
+    document.querySelectorAll("section.panel").forEach(function (p) { p.classList.remove("active"); });
+    document.getElementById(id).classList.add("active");
+    tabsEl.querySelectorAll("button").forEach(function (b) {
+      b.classList.toggle("active", b.dataset.target === id);
+    });
+    window.scrollTo(0, 0);
+    if (id === "panel-reflect") renderStats();
+    if (id === "panel-basics") requestDraw();
+  }
+  showPanel("panel-start");
+
+  // ---------- Explorer mit interaktiven Diagrammen ----------
+  var exM = document.getElementById("exM");
+  var exD = document.getElementById("exD");
+  var chartM = document.getElementById("chartM");
+  var chartD = document.getElementById("chartD");
+
+  function updExplorer() {
+    var m = +exM.value, d = +exD.value;
+    document.getElementById("exMOut").textContent = m + " kg";
+    document.getElementById("exDOut").textContent = d + " N/m";
+    var ratio = m / d;
+    var T = 2 * Math.PI * Math.sqrt(ratio);
+    document.getElementById("exOut").innerHTML =
+      "m/D = " + fmt(ratio.toFixed(3)) + " s&sup2; &rarr; T = 2&pi;&middot;&radic;(m/D) &asymp; <strong>" + fmt(T.toFixed(2)) + " s</strong> &nbsp;(T/2 &asymp; " + fmt((T / 2).toFixed(2)) + " s)";
+    drawCharts();
+  }
+  exM.addEventListener("input", updExplorer);
+  exD.addEventListener("input", updExplorer);
+
+  var PAD = { left: 46, right: 14, top: 18, bottom: 36 };
+  var Y_MAX = 7;
+
+  function drawChart(canvas, xMin, xMax, fx, ticks, xLabel, marker) {
+    if (!canvas) return;
+    var w = canvas.clientWidth, h = canvas.clientHeight;
+    if (w < 60 || h < 60) return;
+    var dpr = window.devicePixelRatio || 1;
+    if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+    }
+    var ctx = canvas.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+    var left = PAD.left, right = w - PAD.right, top = PAD.top, bottom = h - PAD.bottom;
+    function px(x) { return left + (x - xMin) / (xMax - xMin) * (right - left); }
+    function py(t) { return bottom - t / Y_MAX * (bottom - top); }
+    ctx.font = "11px system-ui, sans-serif";
+    ctx.lineWidth = 1;
+    var ty, i;
+    for (ty = 0; ty <= Y_MAX + 0.001; ty += 1) {
+      var gy = py(Math.min(ty, Y_MAX));
+      ctx.strokeStyle = "#e2e7ef";
+      ctx.beginPath(); ctx.moveTo(left, gy); ctx.lineTo(right, gy); ctx.stroke();
+      ctx.fillStyle = "#5b6472";
+      ctx.textAlign = "right";
+      ctx.fillText(fmt(ty.toFixed(0)), left - 6, gy + 4);
+    }
+    ticks.forEach(function (tk) {
+      var tx = px(tk.v);
+      ctx.strokeStyle = "#e2e7ef";
+      ctx.beginPath(); ctx.moveTo(tx, top); ctx.lineTo(tx, bottom); ctx.stroke();
+      ctx.fillStyle = "#5b6472";
+      ctx.textAlign = "center";
+      ctx.fillText(tk.l, tx, bottom + 15);
+    });
+    ctx.strokeStyle = "#9aa4b2";
+    ctx.beginPath(); ctx.moveTo(left, top); ctx.lineTo(left, bottom); ctx.lineTo(right, bottom); ctx.stroke();
+    ctx.fillStyle = "#5b6472";
+    ctx.textAlign = "left";
+    ctx.fillText("T in s", 4, 10);
+    ctx.textAlign = "right";
+    ctx.fillText(xLabel, right, bottom + 30);
+    ctx.strokeStyle = "#1d4e89";
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    var steps = Math.max(80, Math.floor((right - left) / 2));
+    for (i = 0; i <= steps; i++) {
+      var xv = xMin + (i / steps) * (xMax - xMin);
+      var yv = Math.min(fx(xv), Y_MAX);
+      if (i === 0) ctx.moveTo(px(xv), py(yv)); else ctx.lineTo(px(xv), py(yv));
+    }
+    ctx.stroke();
+    var mt = Math.min(fx(marker), Y_MAX);
+    var mx = px(marker), my = py(mt);
+    ctx.setLineDash([4, 3]);
+    ctx.strokeStyle = "#d9a06b";
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(mx, bottom); ctx.lineTo(mx, my); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = "#b4530a";
+    ctx.beginPath(); ctx.arc(mx, my, 5, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.fillStyle = "#b4530a";
+    ctx.textAlign = "center";
+    var labelX = Math.min(Math.max(mx, left + 40), right - 40);
+    ctx.fillText("T = " + fmt(mt.toFixed(2)) + " s", labelX, my - 12);
+  }
+
+  function drawCharts() {
+    var m = +exM.value, d = +exD.value;
+    drawChart(chartM, 20, 120, function (x) { return 2 * Math.PI * Math.sqrt(x / d); },
+      [{ v: 20, l: "20" }, { v: 40, l: "40" }, { v: 60, l: "60" }, { v: 80, l: "80" }, { v: 100, l: "100" }, { v: 120, l: "120" }],
+      "m in kg", m);
+    drawChart(chartD, 100, 4000, function (x) { return 2 * Math.PI * Math.sqrt(m / x); },
+      [{ v: 1000, l: "1000" }, { v: 2000, l: "2000" }, { v: 3000, l: "3000" }, { v: 4000, l: "4000" }],
+      "D in N/m", d);
+  }
+
+  function attachPointer(canvas, setter, xMin, xMax) {
+    var dragging = false;
+    function frac(e) {
+      var r = canvas.getBoundingClientRect();
+      var f = (e.clientX - r.left - PAD.left) / (r.width - PAD.left - PAD.right);
+      return Math.min(1, Math.max(0, f));
+    }
+    canvas.addEventListener("pointerdown", function (e) {
+      dragging = true;
+      if (canvas.setPointerCapture) { try { canvas.setPointerCapture(e.pointerId); } catch (err) {} }
+      setter(xMin + frac(e) * (xMax - xMin));
+      e.preventDefault();
+    });
+    canvas.addEventListener("pointermove", function (e) { if (dragging) setter(xMin + frac(e) * (xMax - xMin)); });
+    function stop() { dragging = false; }
+    canvas.addEventListener("pointerup", stop);
+    canvas.addEventListener("pointercancel", stop);
+  }
+
+  attachPointer(chartM, function (v) {
+    exM.value = Math.round(Math.min(120, Math.max(20, v)));
+    updExplorer();
+  }, 20, 120);
+  attachPointer(chartD, function (v) {
+    exD.value = Math.round(Math.min(4000, Math.max(100, v)));
+    updExplorer();
+  }, 100, 4000);
+
+  function requestDraw() { drawCharts(); }
+  window.addEventListener("resize", function () { drawCharts(); });
+  updExplorer();
+
+  // ---------- Aufbau der Aufgaben ----------
+  var containers = {};
+  MODULES.forEach(function (mod) { containers[mod.id] = document.getElementById(mod.container); });
+  function appendItem(it) { containers[it.module].appendChild(buildItem(it)); }
+  ITEMS.forEach(appendItem);
+
+  function setFb(fb, kind, title, html) {
+    fb.className = "feedback show " + kind;
+    fb.innerHTML = '<div class="fb-title">' + title + "</div>" + html;
+  }
+
+  function askConfidence(host, cb) {
+    var bar = document.createElement("div");
+    bar.className = "confbar";
+    bar.innerHTML = '<span class="muted">Deine Antwort ist notiert — wie sicher warst du dabei?</span>';
+    [["sicher", "sure"], ["eher unsicher", "unsure"], ["geraten", "guess"]].forEach(function (pair) {
+      var b = document.createElement("button");
+      b.className = "btn secondary";
+      b.textContent = pair[0];
+      b.addEventListener("click", function () {
+        var wrap = bar.parentNode;
+        if (wrap) wrap.removeChild(bar);
+        cb(pair[1]);
+      });
+      bar.appendChild(b);
+    });
+    host.appendChild(bar);
+  }
+
+  function buildItem(it) {
+    var st = state[it.id];
+    var card = document.createElement("div");
+    card.className = "item";
+    card.id = "item-" + it.id;
+
+    var tag = document.createElement("span");
+    tag.className = "tag";
+    tag.textContent = it.tag;
+    card.appendChild(tag);
+    if (it.extra) {
+      card.classList.add("extra");
+      var xtag = document.createElement("span");
+      xtag.className = "tag extra-tag";
+      xtag.textContent = "Zusatzaufgabe — freiwillig";
+      card.appendChild(xtag);
+    }
+
+    var prompt = document.createElement("p");
+    prompt.className = "prompt";
+    prompt.innerHTML = fmath(it.prompt);
+    card.appendChild(prompt);
+
+    var fb = document.createElement("div");
+    fb.className = "feedback";
+    function cardFb(kind, title, html) { setFb(fb, kind, title, html); }
+
+    var musterEl = document.createElement("div");
+    musterEl.className = "muster";
+    function showMuster() {
+      musterEl.innerHTML = '<div class="m-title">Musterrechnung — schülerkonforme Darstellung</div>' +
+        "<p><strong>Gegeben:</strong> " + fmath(it.muster.given) + "</p>" +
+        "<p><strong>Gesucht:</strong> " + fmath(it.muster.sought) + "</p>" +
+        "<p><strong>Formel:</strong></p>" +
+        '<p class="dm">' + fmath(it.muster.formula) + "</p>" +
+        "<p><strong>Einsetzen:</strong></p>" +
+        '<p class="dm">' + fmath(it.muster.substitute) + "</p>" +
+        "<p><strong>Ergebnis:</strong></p>" +
+        '<p class="dm">' + fmath(it.muster.result) + "</p>" +
+        "<p><strong>Antwort:</strong> " + esc(it.muster.answer) + "</p>";
+      musterEl.classList.add("show");
+    }
+
+    function noteConfidence(val) {
+      if (st.confidence === null) st.confidence = val || null;
+    }
+    function finishItem() {
+      st.solved = true;
+      st.firstTry = !st.wrong && !st.helpUsed && st.hintClicks === 0;
+      card.classList.add("solved");
+      if (it.muster) showMuster();
+      updateProgress();
+    }
+
+    if (it.type === "mc") {
+      buildMc(it, card, st, {
+        cardFb: cardFb,
+        noteConfidence: noteConfidence,
+        finishItem: finishItem
+      });
+    } else {
+      buildSheet(it, card, st, {
+        cardFb: cardFb,
+        noteConfidence: noteConfidence,
+        finishItem: finishItem
+      });
+    }
+
+    card.appendChild(fb);
+    card.appendChild(musterEl);
+    return card;
+  }
+
+  /* ---------- Multiple-Choice mit Sicherheit nach der Antwort ---------- */
+  function buildMc(it, card, st, ui) {
+    var optWrap = document.createElement("div");
+    optWrap.className = "options";
+    shuffledIndices(it.options.length).forEach(function (i) {
+      var opt = it.options[i];
+      var lab = document.createElement("label");
+      lab.innerHTML = '<input type="radio" name="opt-' + it.id + '" value="' + i + '" /> <span>' + fmath(opt.text) + "</span>";
+      optWrap.appendChild(lab);
+    });
+    card.appendChild(optWrap);
+    var row = document.createElement("div");
+    row.className = "answer-row";
+    var btn = document.createElement("button");
+    btn.className = "btn";
+    btn.textContent = "Antwort abgeben";
+    row.appendChild(btn);
+    card.appendChild(row);
+
+    btn.addEventListener("click", function () {
+      if (st.solved) return;
+      var sel = optWrap.querySelector("input:checked");
+      if (!sel) { ui.cardFb("retry", "Keine Auswahl", "Wähle bitte eine Antwortmöglichkeit aus."); return; }
+      var chosenIdx = +sel.value;
+      var opt = it.options[chosenIdx];
+      var evaluate = function (conf) {
+        ui.noteConfidence(conf);
+        if (opt.correct) {
+          ui.cardFb("ok", "Richtig.", fmath(opt.fb));
+          optWrap.querySelectorAll("input").forEach(function (inp) { inp.disabled = true; });
+          btn.disabled = true;
+          st.tries[0]++;
+          ui.finishItem();
+        } else {
+          st.wrong = true;
+          st.tries[0]++;
+          ui.cardFb("retry", "Diese Antwort ist nicht korrekt.", fmath(opt.fb) +
+            " Lies den Hinweis aufmerksam und wähle begründet erneut.");
+        }
+      };
+      if (st.confidence === null) {
+        askConfidence(row, evaluate);
+      } else {
+        evaluate(st.confidence);
+      }
+    });
+  }
+
+  /* ---------- Rechenblatt: Gegeben, Gesucht, Formel, Einsetzen, Ergebnis ---------- */
+  function buildSheet(it, card, st, ui) {
+    var steps = [];
+    function stepEl(title) {
+      var s = document.createElement("div");
+      s.className = "step locked";
+      s.innerHTML = '<div class="step-title">' + title + "</div>";
+      card.appendChild(s);
+      steps.push(s);
+      return s;
+    }
+    function lockStep(step) {
+      step.querySelectorAll("input,button,.chip").forEach(function (el) {
+        if (el.classList.contains("chip")) { el.setAttribute("draggable", "false"); el.style.cursor = "default"; }
+        else el.disabled = true;
+      });
+      step.classList.add("done-step");
+      step.classList.remove("locked");
+    }
+    function unlockNext(idx) {
+      if (steps[idx]) {
+        steps[idx].classList.remove("locked");
+        steps[idx].scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+    }
+    function stepFb(step) {
+      var f = document.createElement("div");
+      f.className = "feedback";
+      step.appendChild(f);
+      return f;
+    }
+    function hintBtn(label) {
+      var b = document.createElement("button");
+      b.className = "btn secondary";
+      b.textContent = label || "Hinweis";
+      return b;
+    }
+
+    var selected = null;
+
+    function makeChip(c, poolId) {
+      var el = document.createElement("span");
+      el.className = "chip";
+      el.innerHTML = renderLatex(c.latex);
+      el.dataset.chip = c.id;
+      el.dataset.pool = poolId;
+      el.setAttribute("draggable", "true");
+      el.addEventListener("click", function (e) {
+        e.stopPropagation();
+        var host = el.closest(".step");
+        if (host && host.classList.contains("done-step")) return;
+        if (el.parentNode.classList.contains("pool")) {
+          if (selected === el) { el.classList.remove("sel"); selected = null; }
+          else {
+            if (selected) selected.classList.remove("sel");
+            selected = el;
+            el.classList.add("sel");
+          }
+        } else {
+          var pool = card.querySelector('[data-poolid="' + el.dataset.pool + '"]');
+          if (pool) pool.appendChild(el);
+          el.classList.remove("sel");
+          if (selected === el) selected = null;
+        }
+      });
+      el.addEventListener("dragstart", function (e) {
+        var host = el.closest(".step");
+        if (host && host.classList.contains("done-step")) { e.preventDefault(); return; }
+        e.dataTransfer.setData("text/plain", c.id);
+        if (selected) { selected.classList.remove("sel"); selected = null; }
+      });
+      return el;
+    }
+    function chipDataById(pool, id) {
+      for (var i = 0; i < pool.length; i++) { if (pool[i].id === id) return pool[i]; }
+      return null;
+    }
+    function findChip(id) {
+      return card.querySelector('.chip[data-chip="' + id + '"]');
+    }
+    function place(chipEl, target, single, poolOfTarget) {
+      if (!chipEl) return;
+      if (chipEl.dataset.pool !== poolOfTarget) return;
+      if (single) {
+        var old = target.querySelector(".chip");
+        if (old && old !== chipEl) {
+          var p = card.querySelector('[data-poolid="' + old.dataset.pool + '"]');
+          if (p) p.appendChild(old);
+        }
+      }
+      target.appendChild(chipEl);
+      chipEl.classList.remove("sel");
+      if (selected === chipEl) selected = null;
+    }
+    function makeDropTarget(el, single, poolId) {
+      el.addEventListener("click", function () {
+        var host = el.closest(".step");
+        if (host && host.classList.contains("done-step")) return;
+        if (selected && selected.dataset.pool === poolId) place(selected, el, single, poolId);
+      });
+      el.addEventListener("dragover", function (e) { e.preventDefault(); });
+      el.addEventListener("drop", function (e) {
+        e.preventDefault();
+        var host = el.closest(".step");
+        if (host && host.classList.contains("done-step")) return;
+        var id = e.dataTransfer.getData("text/plain");
+        var chipEl = findChip(id);
+        place(chipEl, el, single, poolId);
+      });
+    }
+    function poolOf(container) {
+      var ids = [];
+      container.querySelectorAll(".chip").forEach(function (el) { ids.push(el.dataset.chip); });
+      return ids;
+    }
+
+    /* --- Schritt 1: Gegeben und Gesucht --- */
+    var s1 = stepEl("Schritt 1 — Gegeben und Gesucht");
+    s1.classList.remove("locked");
+    var grid = document.createElement("div");
+    grid.className = "sheet-grid";
+    var colG = document.createElement("div");
+    var colS = document.createElement("div");
+    colG.innerHTML = '<div class="zone-title">Gegeben</div>';
+    colS.innerHTML = '<div class="zone-title">Gesucht</div>';
+    var gDrop = document.createElement("div");
+    gDrop.className = "drop";
+    makeDropTarget(gDrop, false, "poolG");
+    var sDrop = document.createElement("div");
+    sDrop.className = "drop";
+    makeDropTarget(sDrop, true, "poolS");
+    colG.appendChild(gDrop);
+    colS.appendChild(sDrop);
+    var poolG = document.createElement("div");
+    poolG.className = "pool";
+    poolG.dataset.poolid = "poolG";
+    var poolS = document.createElement("div");
+    poolS.className = "pool";
+    poolS.dataset.poolid = "poolS";
+    colG.insertAdjacentHTML("beforeend", '<div class="pool-title muted">Größen mit Wert — ziehe die benötigten ins Feld Gegeben</div>');
+    colS.insertAdjacentHTML("beforeend", '<div class="pool-title muted">Symbole — wähle die gesuchte Größe</div>');
+    colG.appendChild(poolG);
+    colS.appendChild(poolS);
+    grid.appendChild(colG);
+    grid.appendChild(colS);
+    s1.appendChild(grid);
+    shuffledIndices(it.given.pool.length).forEach(function (i) { poolG.appendChild(makeChip(it.given.pool[i], "poolG")); });
+    shuffledIndices(it.sought.pool.length).forEach(function (i) { poolS.appendChild(makeChip(it.sought.pool[i], "poolS")); });
+
+    var row1 = document.createElement("div");
+    row1.className = "answer-row";
+    var b1 = document.createElement("button");
+    b1.className = "btn";
+    b1.textContent = "Gegeben und Gesucht prüfen";
+    var h1 = hintBtn();
+    row1.appendChild(b1);
+    row1.appendChild(h1);
+    s1.appendChild(row1);
+    var fb1 = stepFb(s1);
+
+    h1.addEventListener("click", function () {
+      st.helpUsed = true; st.hintClicks++;
+      h1.disabled = true;
+      setFb(fb1, "info", "Hinweis zu Gegeben und Gesucht.", fmath(it.given.hint));
+    });
+
+    var acceptPaths = it.given.paths || [it.given.accept];
+    function revealGS() {
+      st.helpUsed = true;
+      var path = acceptPaths[0];
+      gDrop.querySelectorAll(".chip").forEach(function (el) { poolG.appendChild(el); });
+      path.forEach(function (id) { var el = findChip(id); if (el) gDrop.appendChild(el); });
+      sDrop.querySelectorAll(".chip").forEach(function (el) { poolS.appendChild(el); });
+      var sId = it.sought.accept[0];
+      var sel = findChip(sId);
+      if (sel) sDrop.appendChild(sel);
+      gDrop.classList.add("okzone");
+      sDrop.classList.add("okzone");
+      setFb(fb1, "info", "Zweiter Versuch nicht vollständig richtig — hier ist die korrekte Zuordnung.",
+        "Vergleiche die markierte Zuordnung mit deiner Auswahl und übertrage sie in dein Heft.");
+      lockStep(s1);
+      b1.disabled = true; h1.disabled = true;
+      unlockNext(1);
+    }
+    b1.addEventListener("click", function () {
+      var gIds = poolOf(gDrop);
+      var sEl = sDrop.querySelector(".chip");
+      var sId = sEl ? sEl.dataset.chip : null;
+      var gOk = acceptPaths.some(function (p) { return sameSet(gIds, p); });
+      var sOk = sId !== null && it.sought.accept.indexOf(sId) >= 0;
+      if (gIds.length === 0 && !sId) {
+        setFb(fb1, "retry", "Noch keine Auswahl.", "Ziehe mindestens eine Größe ins Feld Gegeben und wähle das Gesuchte.");
+        return;
+      }
+      if (gOk && sOk) {
+        setFb(fb1, "ok", "Gegeben und Gesucht korrekt.", "Trage beides in dieser Form in dein Heft. Weiter zur Formel.");
+        gDrop.classList.add("okzone");
+        sDrop.classList.add("okzone");
+        lockStep(s1);
+        b1.disabled = true; h1.disabled = true;
+        unlockNext(1);
+        return;
+      }
+      st.wrong = true;
+      st.tries[0]++;
+      if (st.tries[0] >= 2) { revealGS(); return; }
+      var notes = [];
+      var validIds = [];
+      acceptPaths.forEach(function (p) { validIds = validIds.concat(p); });
+      gIds.forEach(function (id) {
+        if (validIds.indexOf(id) < 0) {
+          var d = chipDataById(it.given.pool, id);
+          if (d && d.note) notes.push(fmath(d.note));
+        }
+      });
+      if (!sOk && sId) {
+        var sd = chipDataById(it.sought.pool, sId);
+        if (sd && sd.note) notes.push(fmath(sd.note));
+      }
+      var msg = "";
+      if (notes.length > 0) {
+        msg = "<ul>" + notes.map(function (n) { return "<li>" + n + "</li>"; }).join("") + "</ul>";
+      } else {
+        var touched = acceptPaths.filter(function (p) {
+          return gIds.some(function (id) { return p.indexOf(id) >= 0; });
+        });
+        if (!sOk) msg = "Das Gesuchte stimmt noch nicht — lies die Aufgabenstellung erneut.";
+        else if (touched.length > 1) msg = "Du mischst Größen aus zwei Lösungswegen. Entscheide dich für genau einen Weg.";
+        else msg = "Es fehlt noch mindestens eine Größe im Feld Gegeben. Lies den Aufgabentext erneut.";
+      }
+      setFb(fb1, "retry", "Deine Zuordnung ist noch nicht vollständig richtig.", msg);
+    });
+
+    /* --- Schritt 2: Formel --- */
+    var s2 = stepEl("Schritt 2 — Formel");
+    var formOpts = document.createElement("div");
+    formOpts.className = "options";
+    var radios = new Array(it.formula.options.length);
+    shuffledIndices(it.formula.options.length).forEach(function (i) {
+      var opt = it.formula.options[i];
+      var lab = document.createElement("label");
+      lab.className = "fopt";
+      lab.innerHTML = '<input type="radio" name="f-' + it.id + '" value="' + i + '" /> <span class="dm">' + renderLatex(opt.latex) + "</span>";
+      formOpts.appendChild(lab);
+      radios[i] = lab.querySelector("input");
+    });
+    s2.appendChild(formOpts);
+    var row2 = document.createElement("div");
+    row2.className = "answer-row";
+    var b2 = document.createElement("button");
+    b2.className = "btn";
+    b2.textContent = "Formel prüfen";
+    var h2 = hintBtn();
+    row2.appendChild(b2);
+    row2.appendChild(h2);
+    s2.appendChild(row2);
+    var fb2 = stepFb(s2);
+
+    h2.addEventListener("click", function () {
+      st.helpUsed = true; st.hintClicks++;
+      h2.disabled = true;
+      setFb(fb2, "info", "Hinweis zur Formelwahl.", fmath(it.formula.hint));
+    });
+
+    b2.addEventListener("click", function () {
+      var sel = s2.querySelector("input:checked");
+      if (!sel) { setFb(fb2, "retry", "Keine Auswahl", "Wähle eine Formel aus."); return; }
+      var opt = it.formula.options[+sel.value];
+      if (opt.correct) {
+        setFb(fb2, "ok", "Formel richtig.", fmath(opt.fb) + " Trage sie unter Formel in deine Heftrechnung ein.");
+        lockStep(s2);
+        b2.disabled = true; h2.disabled = true;
+        unlockNext(2);
+        return;
+      }
+      st.wrong = true;
+      st.tries[1]++;
+      if (st.tries[1] >= 2) {
+        st.helpUsed = true;
+        var ci = it.formula.options.findIndex(function (o) { return o.correct; });
+        radios[ci].checked = true;
+        radios[ci].closest("label").classList.add("correct");
+        setFb(fb2, "info", "Zweiter Versuch nicht richtig — hier ist die korrekte Formel.",
+          fmath(it.formula.options[ci].fb) + " Setze dich kurz damit auseinander, warum dein Ansatz abweicht.");
+        lockStep(s2);
+        b2.disabled = true; h2.disabled = true;
+        unlockNext(2);
+        return;
+      }
+      setFb(fb2, "retry", "Diese Formel führt nicht zum Ziel.", fmath(opt.fb) + " Prüfe deine Umstellung Schritt für Schritt.");
+    });
+
+    /* --- Schritt 3: Einsetzen --- */
+    var nextIdx = 2;
+    if (it.subst) {
+      var s3 = stepEl("Schritt 3 — Einsetzen: Schiebe die Werte in die Fächer");
+      var tpl = document.createElement("p");
+      tpl.className = "dm";
+      tpl.innerHTML = renderLatex(it.subst.template);
+      s3.appendChild(tpl);
+      var poolV = document.createElement("div");
+      poolV.className = "pool";
+      poolV.dataset.poolid = "poolV";
+      shuffledIndices(it.subst.pool.length).forEach(function (i) { poolV.appendChild(makeChip(it.subst.pool[i], "poolV")); });
+      s3.insertAdjacentHTML("beforeend", "");
+      var tplHint = document.createElement("div");
+      tplHint.className = "pool-title muted";
+      tplHint.textContent = "Werte — ziehe zu jedem Formelzeichen den richtigen Zahlenwert in sein Fach";
+      s3.appendChild(tplHint);
+      s3.appendChild(poolV);
+      var slots = s3.querySelectorAll(".slot");
+      slots.forEach(function (sl) {
+        makeDropTarget(sl, true, "poolV");
+      });
+      var row3s = document.createElement("div");
+      row3s.className = "answer-row";
+      var b3s = document.createElement("button");
+      b3s.className = "btn";
+      b3s.textContent = "Einsetzen prüfen";
+      var h3s = hintBtn();
+      row3s.appendChild(b3s);
+      row3s.appendChild(h3s);
+      s3.appendChild(row3s);
+      var fb3s = stepFb(s3);
+
+      h3s.addEventListener("click", function () {
+        st.helpUsed = true; st.hintClicks++;
+        h3s.disabled = true;
+        setFb(fb3s, "info", "Hinweis zum Einsetzen.", fmath(it.subst.hint));
+      });
+
+      b3s.addEventListener("click", function () {
+        var allFilled = true;
+        var allOk = true;
+        slots.forEach(function (sl) {
+          var chip = sl.querySelector(".chip");
+          if (!chip) { allFilled = false; return; }
+          if (chip.dataset.chip !== it.subst.accept[sl.dataset.label]) allOk = false;
+        });
+        if (allFilled && allOk) {
+          slots.forEach(function (sl) { sl.classList.add("filled"); });
+          setFb(fb3s, "ok", "Einsetzen korrekt.", "Alle Werte sitzen am richtigen Platz. Schreibe die Zeile so in dein Heft.");
+          lockStep(s3);
+          b3s.disabled = true; h3s.disabled = true;
+          unlockNext(3);
+          return;
+        }
+        st.wrong = true;
+        st.tries[2]++;
+        if (st.tries[2] >= 2) {
+          st.helpUsed = true;
+          slots.forEach(function (sl) {
+            var want = it.subst.accept[sl.dataset.label];
+            var cur = sl.querySelector(".chip");
+            if (cur && cur.dataset.chip !== want) { poolV.appendChild(cur); }
+            var el = findChip(want);
+            if (el) { sl.innerHTML = ""; sl.appendChild(el); sl.classList.add("filled"); }
+          });
+          setFb(fb3s, "info", "Zweiter Versuch nicht richtig — hier ist das korrekte Einsetzen.",
+            "Vergleiche die Zuordnung der Werte mit deiner Auswahl. Jeder Messwert gehört zu genau einem Formelzeichen.");
+          lockStep(s3);
+          b3s.disabled = true; h3s.disabled = true;
+          unlockNext(3);
+          return;
+        }
+        var notes = [];
+        slots.forEach(function (sl) {
+          var chip = sl.querySelector(".chip");
+          if (chip) {
+            var d = chipDataById(it.subst.pool, chip.dataset.chip);
+            if (d && d.note && chip.dataset.chip !== it.subst.accept[sl.dataset.label]) notes.push(fmath(d.note));
+          }
+        });
+        var msg;
+        if (!allFilled) msg = "Es fehlt noch mindestens ein Wert in einem Fach. Ziehe die zugehörigen Zahlenwerte hinein.";
+        else if (notes.length > 0) msg = "<ul>" + notes.map(function (n) { return "<li>" + n + "</li>"; }).join("") + "</ul>";
+        else msg = "Ein Wert sitzt noch nicht am richtigen Platz. Prüfe, welcher Messwert zu welchem Formelzeichen gehört.";
+        setFb(fb3s, "retry", "Beim Einsetzen stimmt etwas noch nicht.", msg);
+      });
+      nextIdx = 3;
+    }
+
+    /* --- Letzter Schritt: Ergebnis --- */
+    var resStepNo = nextIdx + 1;
+    var s4 = stepEl("Schritt " + resStepNo + " — Ergebnis");
+    var row4 = document.createElement("div");
+    row4.className = "answer-row";
+    var inp = document.createElement("input");
+    inp.type = "text";
+    inp.inputMode = "decimal";
+    inp.placeholder = "z. B. 12,34";
+    var unitSpan = document.createElement("span");
+    unitSpan.innerHTML = renderLatex("\\mathrm{" + it.result.unit + "}");
+    var roundNote = document.createElement("span");
+    roundNote.className = "muted";
+    roundNote.textContent = "(auf höchstens zwei Nachkommastellen runden)";
+    var b4 = document.createElement("button");
+    b4.className = "btn";
+    b4.textContent = "Ergebnis prüfen";
+    var h4 = hintBtn();
+    row4.appendChild(inp);
+    row4.appendChild(unitSpan);
+    row4.appendChild(roundNote);
+    row4.appendChild(b4);
+    row4.appendChild(h4);
+    s4.appendChild(row4);
+    var fb4 = stepFb(s4);
+
+    inp.addEventListener("input", function () {
+      var v = inp.value.replace(/\./g, ",").replace(/[^\d,]/g, "");
+      var parts = v.split(",");
+      if (parts.length > 2) v = parts[0] + "," + parts.slice(1).join("");
+      inp.value = v;
+    });
+
+    var hintLevel = 0;
+    h4.addEventListener("click", function () {
+      st.helpUsed = true;
+      st.hintClicks++;
+      hintLevel++;
+      if (hintLevel === 1) setFb(fb4, "info", "Strategie-Hinweis.", fmath(it.result.hint1));
+      else if (hintLevel === 2) setFb(fb4, "info", "Zweiter Hinweis.", fmath(it.result.hint2));
+      if (hintLevel >= 2) h4.disabled = true;
+    });
+
+    b4.addEventListener("click", function () {
+      if (st.solved) return;
+      var raw = inp.value.trim();
+      if (!/^\d+(,\d+)?$/.test(raw)) {
+        setFb(fb4, "retry", "Eingabe unvollständig.", "Bitte gib das Ergebnis als Zahl mit Dezimalkomma ein (zum Beispiel 12,34). Ein Dezimalpunkt ist nicht erlaubt.");
+        return;
+      }
+      var v = parseFloat(raw.replace(",", "."));
+      var evaluate = function (conf) {
+        ui.noteConfidence(conf);
+        st.tries[3]++;
+        if (closeTo(v, it.result.answer, it.result.tol)) {
+          setFb(fb4, "ok", "Richtig — Rechnung abgeschlossen.",
+            "Dein Ergebnis stimmt. Die vollständige Musterrechnung findest du unten zum Vergleich mit deiner Heftrechnung." +
+            (st.wrong || st.helpUsed ? "" : " Du hast alle Schritte ohne Fehler und ohne Hilfe gelöst — ein sauberer Lösungsweg."));
+          lockStep(s4);
+          b4.disabled = true; h4.disabled = true;
+          inp.disabled = true;
+          ui.finishItem();
+          return;
+        }
+        st.wrong = true;
+        var bugHit = null;
+        (it.result.bugs || []).forEach(function (b) {
+          if (closeTo(v, b.val, Math.max(Math.abs(b.val) * 0.05, 0.02))) bugHit = b;
+        });
+        if (st.tries[3] === 1) {
+          if (bugHit) setFb(fb4, "retry", "Noch nicht richtig — Hinweis zur Fehlersuche.", fmath(bugHit.hint));
+          else setFb(fb4, "retry", "Noch nicht richtig — prüfe deine Rechnung.",
+            "Vergleiche Einsetzen und Zwischenschritte mit deiner Heftrechnung. Kontrolliere Einheiten und Rundung. Du hast noch zwei Versuche.");
+        } else if (st.tries[3] === 2) {
+          setFb(fb4, "retry", "Zweiter Versuch ebenfalls nicht richtig.", fmath(it.result.hint2) + " Rechne den Zwischenschritt auf Papier nach.");
+        } else {
+          st.solutionShown = true;
+          setFb(fb4, "info", "Dritter Versuch nicht richtig — nun die vollständige Musterrechnung.",
+            "Vergleiche deine Heftrechnung Schritt für Schritt mit der Musterrechnung. Markiere die abweichende Stelle und notiere die Fehlerart.");
+          lockStep(s4);
+          b4.disabled = true; h4.disabled = true;
+          inp.disabled = true;
+          ui.finishItem();
+        }
+      };
+      if (st.confidence === null) {
+        askConfidence(row4, evaluate);
+      } else {
+        evaluate(st.confidence);
+      }
+    });
+  }
+
+  // ---------- Fortschritt und Statistik ----------
+  var totalItems = ITEMS.filter(function (it) { return !it.extra; }).length;
+
+  function updateProgress() {
+    var solvedAll = ITEMS.filter(function (it) { return !it.extra && state[it.id].solved; }).length;
+    document.getElementById("bar").style.width = (100 * solvedAll / totalItems) + "%";
+    MODULES.forEach(function (mod) {
+      var modItems = ITEMS.filter(function (it) { return it.module === mod.id; });
+      var reqIds = modItems.filter(function (it) { return !it.extra; }).map(function (it) { return it.id; });
+      var solvedReq = reqIds.filter(function (id) { return state[id].solved; }).length;
+      var extraItems = modItems.filter(function (it) { return it.extra; });
+      var chip = document.getElementById("chip-" + mod.id);
+      if (chip) {
+        chip.textContent = solvedReq + " von " + reqIds.length + " Pflichtaufgaben gelöst";
+        if (extraItems.length) {
+          var exSolved = extraItems.filter(function (it) { return state[it.id].solved; }).length;
+          chip.textContent += exSolved > 0 ? " — Zusatz gelöst" : " — Zusatz offen";
+        }
+      }
+      var tab = tabsEl.querySelector('button[data-target="' + mod.panel + '"]');
+      if (tab) tab.querySelector(".done").classList.toggle("full", solvedReq === reqIds.length);
+    });
+  }
+
+  function renderStats() {
+    var solved = 0, first = 0, viaSol = 0, hints = 0, miscal = 0, extraSolved = false;
+    ITEMS.forEach(function (it) {
+      var st = state[it.id];
+      if (it.extra) {
+        if (st.solved) extraSolved = true;
+        hints += st.hintClicks;
+        return;
+      }
+      if (st.solved) solved++;
+      if (st.solved && st.firstTry) first++;
+      if (st.solutionShown) viaSol++;
+      hints += st.hintClicks;
+      if (st.solved && st.confidence === "guess") miscal++;
+      if (!st.solved && st.confidence === "sure") miscal++;
+    });
+    document.getElementById("st-solved").textContent = solved + " / " + totalItems;
+    document.getElementById("st-extra").textContent = extraSolved ? "ja" : "nein";
+    document.getElementById("st-first").textContent = first;
+    document.getElementById("st-sol").textContent = viaSol;
+    document.getElementById("st-hints").textContent = hints;
+    document.getElementById("st-calib").textContent = miscal;
+    var note = document.getElementById("st-calib-note");
+    if (solved === 0) {
+      note.textContent = "Bearbeite zunächst einige Aufgaben; hier erscheint dann dein Lernstand.";
+    } else if (miscal > 0) {
+      note.textContent = "Hinweis: Bei " + miscal + " Aufgabe(n) stimmten Sicherheit und Ergebnis nicht überein. Nutze die gestuften Hinweise, um vor dem Abgeben gezielt zu kontrollieren.";
+    } else {
+      note.textContent = "Deine Sicherheit und deine Ergebnisse stimmten überein — ein Zeichen einer gut kalibrierten Selbsteinschätzung.";
+    }
+  }
+
+  document.getElementById("btnRedo").addEventListener("click", function () {
+    var any = false;
+    ITEMS.forEach(function (it) {
+      var st = state[it.id];
+      if (st.solved && !st.firstTry) {
+        state[it.id] = freshState();
+        var old = document.getElementById("item-" + it.id);
+        if (old) old.remove();
+        appendItem(it);
+        any = true;
+      }
+    });
+    updateProgress();
+    renderStats();
+    if (any) {
+      showPanel("panel-m1");
+      var oldNote = document.getElementById("redoNote");
+      if (!oldNote) {
+        document.querySelector("#panel-m1 .card").insertAdjacentHTML("beforeend",
+          '<p class="muted" id="redoNote">Die Aufgaben mit Fehlern oder genutzten Hilfen wurden zurückgesetzt. Versuche sie diesmal ohne Hilfestellung zu lösen.</p>');
+      }
+    } else {
+      document.getElementById("st-calib-note").textContent =
+        "Du hast alle bisher bearbeiteten Aufgaben fehlerfrei und ohne Hilfe gelöst. Setze dir stattdessen eine neue Herausforderung: Erkläre einem Mitschüler die Umstellung von T = 2π·√(m/D) nach m.";
+    }
+  });
+
+  renderAllStatic();
+  updateProgress();
+})();
+</script>
+</body>
+</html>
