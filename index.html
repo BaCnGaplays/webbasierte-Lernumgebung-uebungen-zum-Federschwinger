@@ -1146,18 +1146,19 @@
 
   function askConfidence(host, cb) {
     var existing = host.querySelector(".confbar");
-    if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
+    if (existing) { existing._cb = cb; return; }
     var bar = document.createElement("div");
     bar.className = "confbar";
+    bar._cb = cb;
     bar.innerHTML = '<span class="muted">Deine Antwort ist notiert — wie sicher warst du dabei?</span>';
     [["sicher", "sure"], ["eher unsicher", "unsure"], ["geraten", "guess"]].forEach(function (pair) {
       var b = document.createElement("button");
       b.className = "btn secondary";
       b.textContent = pair[0];
       b.addEventListener("click", function () {
-        var wrap = bar.parentNode;
-        if (wrap) wrap.removeChild(bar);
-        cb(pair[1]);
+        if (!bar.parentNode) return;
+        bar.parentNode.removeChild(bar);
+        bar._cb(pair[1]);
       });
       bar.appendChild(b);
     });
