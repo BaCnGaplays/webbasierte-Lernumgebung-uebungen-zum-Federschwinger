@@ -252,7 +252,7 @@
           <canvas id="chartD" aria-label="Diagramm: T in Abhängigkeit von D"></canvas>
         </div>
       </div>
-      <p class="muted">Fragen zum Nachdenken: Verdoppelt sich T, wenn du m verdoppelst? Was passiert mit T, wenn D vervierfacht wird? Warum verläuft eine Kurve aufwärts gekrümmt und die andere stark abwärts?</p>
+      <p class="muted">Fragen zum Nachdenken: Verdoppelt sich T, wenn du m vervierfachst? Was passiert mit T, wenn D vervierfacht wird? Warum verläuft eine Kurve aufwärts gekrümmt und die andere stark abwärts?</p>
     </div>
     <div class="card">
       <h2>Gerechnetes Beispiel</h2>
@@ -1145,6 +1145,8 @@
   }
 
   function askConfidence(host, cb) {
+    var existing = host.querySelector(".confbar");
+    if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
     var bar = document.createElement("div");
     bar.className = "confbar";
     bar.innerHTML = '<span class="muted">Deine Antwort ist notiert — wie sicher warst du dabei?</span>';
@@ -1160,6 +1162,25 @@
       bar.appendChild(b);
     });
     host.appendChild(bar);
+  }
+
+  // Interner Klick-Schutz: Nach einer falschen Antwort werden weitere Klicks auf den
+  // Pruef-Button fuer 10 Sekunden ignoriert, ohne dass die Sperre sichtbar ist.
+  var CHECK_COOLDOWN_MS = 10000;
+  function startCooldown(btn) {
+    if (!btn._cdGuard) {
+      btn._cdGuard = true;
+      var host = btn.parentNode;
+      if (host) {
+        host.addEventListener("click", function (e) {
+          if ((e.target === btn || btn.contains(e.target)) && Date.now() < (btn._cdUntil || 0)) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+          }
+        }, true);
+      }
+    }
+    btn._cdUntil = Date.now() + CHECK_COOLDOWN_MS;
   }
 
   function buildItem(it) {
@@ -1303,6 +1324,7 @@
           ui.finishItem();
         } else {
           st.wrong = true;
+          startCooldown(btn);
           st.tries[0]++;
           ui.cardFb("retry", "Diese Antwort ist nicht korrekt.", fmath(opt.fb) +
             " Lies den Hinweis aufmerksam und wähle begründet erneut.");
@@ -1520,6 +1542,7 @@
         return;
       }
       st.wrong = true;
+      startCooldown(b1);
       st.tries[0]++;
       if (st.tries[0] >= 2) { revealGS(); return; }
       var notes = [];
@@ -1595,6 +1618,7 @@
         return;
       }
       st.wrong = true;
+      startCooldown(b2);
       st.tries[1]++;
       if (st.tries[1] >= 2) {
         st.helpUsed = true;
@@ -1667,6 +1691,7 @@
           return;
         }
         st.wrong = true;
+        startCooldown(b3s);
         st.tries[2]++;
         if (st.tries[2] >= 2) {
           st.helpUsed = true;
@@ -1766,6 +1791,7 @@
           return;
         }
         st.wrong = true;
+        startCooldown(b4);
         var bugHit = null;
         (it.result.bugs || []).forEach(function (b) {
           if (closeTo(v, b.val, Math.max(Math.abs(b.val) * 0.05, 0.02))) bugHit = b;
