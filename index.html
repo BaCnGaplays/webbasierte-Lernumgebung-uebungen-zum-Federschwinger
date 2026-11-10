@@ -77,7 +77,21 @@
   .item.solved { border-color: #9fd4b4; background: #fbfffc; }
   .item.extra { border-style: dashed; border-color: #c9b458; background: #fffcf2; }
   .item.extra.solved { border-color: #9fd4b4; background: #fbfffc; }
-  .tag.extra-tag { background: #f5ecd0; color: #7a6414; margin-left: 6px; }
+
+  /* Einklappbare Aufgaben mit Freischaltlogik */
+  .item-head { display: flex; align-items: center; gap: 10px; width: 100%; background: none; border: none; padding: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+  .item-head .tag { margin-bottom: 0; }
+  .item-head .item-name { font-weight: 600; flex: 1; font-size: .95rem; }
+  .item-head .chev { color: var(--muted); font-size: .8rem; transition: transform .2s ease; }
+  .item.open .item-head .chev { transform: rotate(90deg); }
+  .item-body { display: none; }
+  .item.open .item-body { display: block; }
+  .item.locked .item-head { cursor: default; }
+  .item.locked:not(.solved) { opacity: .6; }
+  .item.locked .item-head .chev { visibility: hidden; }
+  .state-badge { font-size: .74rem; border: 1px solid var(--border); background: #f1f4f9; color: var(--muted); border-radius: 999px; padding: 3px 10px; white-space: nowrap; }
+  .state-badge.solved { background: var(--ok-soft); color: var(--ok); border-color: #a9d8bd; }
+  .item.solved .item-head .tag { background: var(--ok-soft); color: var(--ok); }
 
   .step { border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; margin-top: 12px; }
   .step .step-title { font-weight: 600; margin-bottom: 8px; color: var(--accent); }
@@ -143,10 +157,6 @@
   table.stats th { background: #f0f3f8; }
 
   textarea { width: 100%; min-height: 70px; border: 1px solid var(--border); border-radius: 8px; padding: 10px; font: inherit; font-size: .93rem; }
-
-  details.teacher { margin-top: 24px; }
-  details.teacher summary { cursor: pointer; color: var(--muted); font-size: .9rem; }
-  details.teacher .card { margin-top: 10px; }
 
   footer.src { color: var(--muted); font-size: .8rem; margin-top: 28px; }
   footer.src p { margin: 4px 0; }
@@ -796,7 +806,7 @@
         answer: "Der Springer braucht für ein vollständiges Auf und Ab rund 5,8 Sekunden. Bis zum tiefsten Punkt — eine halbe Schwingung — vergeht davon etwa die Hälfte: rund 2,9 Sekunden."
       }
     },
-    { id: "q9", module: "m3", type: "sheet", extra: true, tag: "Zusatzaufgabe: Hookesches Gesetz",
+    { id: "q9", module: "m3", type: "sheet", extra: true, unlockAfter: "q8", tag: "Hookesches Gesetz",
       prompt: "Zusatzaufgabe für schnelle Rechnerinnen und Rechner: In der Ruhelage hängt der Springer ruhig am Seil — Seilkraft (Federkraft) und Gewichtskraft heben sich auf. Berechne, um welche Strecke $s$ das Seil in der Ruhelage gedehnt ist. Hier musst du umdenken: erst Kräftegleichgewicht, dann Hookesches Gesetz.",
       given: {
         pool: [
@@ -854,7 +864,7 @@
         answer: "In der Ruhelage ist das Seil um rund 8,34 Meter gedehnt. Der tiefste Punkt des Sprungs liegt noch einmal so weit tiefer — die Brücke muss dafür also hoch genug sein."
       }
     },
-    { id: "q10", module: "m3", type: "mc", tag: "Modellgrenzen",
+    { id: "q10", module: "m3", type: "mc", unlockAfter: "q8", tag: "Modellgrenzen",
       prompt: "Warum weicht ein realer Bungeesprung vom hier berechneten Modell ab?",
       options: [
         { text: "Reale Seile dämpfen die Bewegung: Bei jedem Durchgang geht Energie verloren, die Schwingung klingt ab.", correct: true,
@@ -874,6 +884,66 @@
     { id: "m2", panel: "panel-m2", container: "items-m2" },
     { id: "m3", panel: "panel-m3", container: "items-m3" }
   ];
+
+  /* Aufgabennummerierung pro Modul: Pflichtaufgaben zählen hoch, Zusatz separat */
+  var TASK_NO = {};
+  MODULES.forEach(function (mod) {
+    var n = 0;
+    ITEMS.forEach(function (it) {
+      if (it.module !== mod.id) return;
+      if (it.extra) TASK_NO[it.id] = "Zusatzaufgabe";
+      else { n += 1; TASK_NO[it.id] = "Aufgabe " + n; }
+    });
+  });
+
+  /* Freischaltlogik: Module sind frei wählbar; innerhalb eines Moduls werden
+     die Pflichtaufgaben nacheinander freigeschaltet. In Modul 3 schalten sich
+     Zusatzaufgabe und Modellgrenzen zusammen nach der Hauptaufgabe frei. */
+  function isUnlocked(it) {
+    if (it.unlockAfter) return state[it.unlockAfter].solved;
+    var req = ITEMS.filter(function (x) { return x.module === it.module && !x.unlockAfter && !x.extra; });
+    var idx = req.indexOf(it);
+    for (var i = 0; i < idx; i++) { if (!state[req[i].id].solved) return false; }
+    return true;
+  }
+
+  function openItem(it, scroll) {
+    ITEMS.forEach(function (x) {
+      if (x.module !== it.module) return;
+      var c = document.getElementById("item-" + x.id);
+      if (c) {
+        c.classList.remove("open");
+        var h = c.querySelector(".item-head");
+        if (h) h.setAttribute("aria-expanded", "false");
+      }
+    });
+    var card = document.getElementById("item-" + it.id);
+    if (!card) return;
+    card.classList.add("open");
+    var head = card.querySelector(".item-head");
+    if (head) head.setAttribute("aria-expanded", "true");
+    if (scroll) card.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function updateItemLocks() {
+    ITEMS.forEach(function (it) {
+      var card = document.getElementById("item-" + it.id);
+      if (!card) return;
+      var unlocked = isUnlocked(it);
+      var st = state[it.id];
+      card.classList.toggle("locked", !unlocked && !st.solved);
+      var badge = card.querySelector(".state-badge");
+      if (badge) {
+        if (st.solved) { badge.textContent = "gelöst ✓"; badge.classList.add("solved"); }
+        else {
+          badge.classList.remove("solved");
+          badge.textContent = unlocked ? (it.extra ? "freiwillig" : "offen") : "gesperrt";
+        }
+      }
+      var head = card.querySelector(".item-head");
+      if (head) head.title = (!unlocked && !st.solved) ? "Diese Aufgabe ist noch gesperrt. Löse zuerst die vorherige Aufgabe in diesem Modul." : "";
+    });
+  }
 
   function freshState() {
     return { tries: [0, 0, 0, 0], wrong: false, helpUsed: false, hintClicks: 0, solved: false, firstTry: false, solutionShown: false, confidence: null };
@@ -919,6 +989,22 @@
     window.scrollTo(0, 0);
     if (id === "panel-reflect") renderStats();
     if (id === "panel-basics") requestDraw();
+    if (id.indexOf("panel-m") === 0) {
+      updateItemLocks();
+      var modId = id.slice("panel-".length);
+      var hasOpen = ITEMS.some(function (x) {
+        var c = document.getElementById("item-" + x.id);
+        return x.module === modId && c && c.classList.contains("open");
+      });
+      if (!hasOpen) {
+        var pending = null;
+        ITEMS.forEach(function (x) {
+          if (pending || x.module !== modId || x.extra) return;
+          if (isUnlocked(x) && !state[x.id].solved) pending = x;
+        });
+        if (pending) openItem(pending, false);
+      }
+    }
   }
   showPanel("panel-start");
 
@@ -1090,22 +1176,46 @@
     card.className = "item";
     card.id = "item-" + it.id;
 
-    var tag = document.createElement("span");
-    tag.className = "tag";
-    tag.textContent = it.tag;
-    card.appendChild(tag);
-    if (it.extra) {
-      card.classList.add("extra");
-      var xtag = document.createElement("span");
-      xtag.className = "tag extra-tag";
-      xtag.textContent = "Zusatzaufgabe — freiwillig";
-      card.appendChild(xtag);
-    }
+    if (it.extra) card.classList.add("extra");
+
+    var head = document.createElement("button");
+    head.type = "button";
+    head.className = "item-head";
+    head.setAttribute("aria-expanded", "false");
+    var num = document.createElement("span");
+    num.className = "tag";
+    num.textContent = TASK_NO[it.id];
+    var name = document.createElement("span");
+    name.className = "item-name";
+    name.textContent = it.tag;
+    var badge = document.createElement("span");
+    badge.className = "state-badge";
+    var chev = document.createElement("span");
+    chev.className = "chev";
+    chev.setAttribute("aria-hidden", "true");
+    chev.textContent = "▸";
+    head.appendChild(num);
+    head.appendChild(name);
+    head.appendChild(badge);
+    head.appendChild(chev);
+    head.addEventListener("click", function () {
+      if (card.classList.contains("locked")) return;
+      if (card.classList.contains("open")) {
+        card.classList.remove("open");
+        head.setAttribute("aria-expanded", "false");
+      } else {
+        openItem(it, false);
+      }
+    });
+    card.appendChild(head);
+
+    var body = document.createElement("div");
+    body.className = "item-body";
 
     var prompt = document.createElement("p");
     prompt.className = "prompt";
     prompt.innerHTML = fmath(it.prompt);
-    card.appendChild(prompt);
+    body.appendChild(prompt);
 
     var fb = document.createElement("div");
     fb.className = "feedback";
@@ -1136,24 +1246,33 @@
       card.classList.add("solved");
       if (it.muster) showMuster();
       updateProgress();
+      card.classList.remove("open");
+      head.setAttribute("aria-expanded", "false");
+      var pending = null;
+      ITEMS.forEach(function (x) {
+        if (pending || x.module !== it.module || x.extra) return;
+        if (isUnlocked(x) && !state[x.id].solved) pending = x;
+      });
+      if (pending) openItem(pending, true);
     }
 
     if (it.type === "mc") {
-      buildMc(it, card, st, {
+      buildMc(it, body, st, {
         cardFb: cardFb,
         noteConfidence: noteConfidence,
         finishItem: finishItem
       });
     } else {
-      buildSheet(it, card, st, {
+      buildSheet(it, body, st, {
         cardFb: cardFb,
         noteConfidence: noteConfidence,
         finishItem: finishItem
       });
     }
 
-    card.appendChild(fb);
-    card.appendChild(musterEl);
+    body.appendChild(fb);
+    body.appendChild(musterEl);
+    card.appendChild(body);
     return card;
   }
 
@@ -1702,6 +1821,7 @@
       var tab = tabsEl.querySelector('button[data-target="' + mod.panel + '"]');
       if (tab) tab.querySelector(".done").classList.toggle("full", solvedReq === reqIds.length);
     });
+    updateItemLocks();
   }
 
   function renderStats() {
