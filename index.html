@@ -95,7 +95,9 @@
 
   .step { border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; margin-top: 12px; }
   .step .step-title { font-weight: 600; margin-bottom: 8px; color: var(--accent); }
-  .step.locked { opacity: .45; }
+  .step.locked { display: none; }
+  @keyframes step-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  .step:not(.locked) { animation: step-in .25s ease; }
   .step.done-step { border-color: #a9d8bd; background: #f7fcf9; }
 
   .answer-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 8px; }
@@ -220,8 +222,7 @@
       <p>Im Experiment habt ihr in der letzten Stunde gemessen: Je größer die Masse <span class="math" data-fm="m"></span>, desto langsamer schwingt der Körper; je größer die Federkonstante <span class="math" data-fm="D"></span>, desto schneller. Daraus folgt die Formel für die Periodendauer — die Dauer einer vollständigen Schwingung:</p>
       <div class="formula math" data-fm="T = 2\pi\sqrt{\frac{m}{D}}"></div>
       <p>Die Periodendauer hängt weder von der Amplitude ab noch vom Ortsfaktor <span class="math" data-fm="g"></span> — genau das macht die Formel für das Wiegen in der Schwerelosigkeit nutzbar.</p>
-      <p>Umgestellt nach den gesuchten Größen:</p>
-      <div class="formula math" data-fm="m = \frac{D\,T^2}{4\,\pi^2} \qquad\qquad D = \frac{4\,\pi^2\,m}{T^2}"></div>
+      <p class="muted">Wie du die Formel nach <span class="math" data-fm="m"></span> oder nach <span class="math" data-fm="D"></span> umstellst, erarbeitest du dir in den Aufgaben selbst: Stelle im Heft um und prüfe dann deine Umstellung. Gestufte Hinweise helfen, wenn du hängen bleibst.</p>
     </div>
     <div class="card">
       <h2>Periodendauer messen</h2>
@@ -398,7 +399,7 @@
       if (name === "mathrm" || name === "text") { return readGroup(true); }
       if (name === "slot") {
         var raw = readRawGroup();
-        return '<span class="slot" data-label="' + raw + '">' + mathCore(raw) + "</span>";
+        return '<span class="slot" data-label="' + raw + '"></span>';
       }
       if (name === "pi") return "&#960;";
       if (name === "Delta") return "Δ";
@@ -554,7 +555,7 @@
         answer: "Der Schwingstuhl benötigt für eine vollständige Schwingung rund 3,3 Sekunden."
       }
     },
-    { id: "q3", module: "m1", type: "sheet", tag: "Schülerrechnung",
+    { id: "q3", module: "m1", type: "sheet", tag: "Schülerrechnung", rearrange: true,
       prompt: "Zweiter Schritt: Bestimme mit der Periodendauer aus der Messung und der bekannten Federkonstante die Masse $m$ der Astronautin.",
       given: {
         pool: [
@@ -585,7 +586,7 @@
         hint: "Quadriere beide Seiten von $T = 2\\pi\\sqrt{m/D}$ und löse nach $m$ auf."
       },
       subst: {
-        template: "m = \\frac{\\slot{D} \\cdot \\slot{T}^2}{4\\,\\pi^2}",
+        template: "m = \\frac{\\slot{D} \\cdot (\\slot{T})^2}{4\\,\\pi^2}",
         accept: { "D": "vD", "T": "vT" },
         pool: [
           { id: "vD", latex: "292\\,\\mathrm{N/m}" },
@@ -675,7 +676,7 @@
         answer: "Die Eichmasse schwingt mit einer Schwingungsdauer von 0,52 Sekunden."
       }
     },
-    { id: "q6", module: "m2", type: "sheet", tag: "Eichung — Umstellen",
+    { id: "q6", module: "m2", type: "sheet", tag: "Eichung — Umstellen", rearrange: true,
       prompt: "Zweiter Schritt: Bestimme mit der Masse der Eichmasse und der Schwingungsdauer aus dem ersten Schritt die Federkonstante $D$ der Feder — damit ist das Gerät geeicht.",
       given: {
         pool: [
@@ -706,7 +707,7 @@
         hint: "Quadriere $T = 2\\pi\\sqrt{m/D}$ und bringe $D$ auf die andere Seite."
       },
       subst: {
-        template: "D = \\frac{4\\,\\pi^2 \\cdot \\slot{m}}{\\slot{T}^2}",
+        template: "D = \\frac{4\\,\\pi^2 \\cdot \\slot{m}}{(\\slot{T})^2}",
         accept: { "m": "vM", "T": "vT" },
         pool: [
           { id: "vM", latex: "2{,}00\\,\\mathrm{kg}" },
@@ -1559,6 +1560,9 @@
 
     /* --- Schritt 2: Formel --- */
     var s2 = stepEl("Schritt 2 — Formel");
+    if (it.rearrange) {
+      s2.insertAdjacentHTML("beforeend", '<p class="muted">Stelle die Formel jetzt selbst in deinem Heft um — prüfe dann hier deine Umstellung.</p>');
+    }
     var formOpts = document.createElement("div");
     formOpts.className = "options";
     var radios = new Array(it.formula.options.length);
