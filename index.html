@@ -191,7 +191,7 @@
         <li><strong>Rechenblatt:</strong> Jede Rechenaufgabe ist ein interaktives Rechenblatt. Du ziehst die gegebenen Größen in das Feld Gegeben, wählst das Gesuchte und die passende Formel, schiebst die Zahlenwerte in die Fächer der Formel und gibst erst zum Schluss das Ergebnis ein. Führe die Rechnung parallel in deinem Heft aus.</li>
         <li><strong>Antwort zuerst, Sicherheit danach:</strong> Du gibst deine Antwort ab und wirst erst dann gefragt, wie sicher du dir warst — danach erhältst du die Rückmeldung. So lernst du, deine eigene Sicherheit realistisch einzuschätzen.</li>
         <li><strong>Gestufte Hinweise:</strong> Bei falschen Angaben erhältst du Hinweise zur Fehlersuche, dann Strategie-Hinweise. Die Musterrechnung erscheint erst, wenn du sie wirklich brauchst.</li>
-        <li><strong>Runden:</strong> Gib Endergebnisse auf höchstens zwei Nachkommastellen gerundet an (zum Beispiel 78,95). Rundungsbedingte kleine Abweichungen sind bei der Prüfung erlaubt.</li>
+        <li><strong>Runden:</strong> Gib Endergebnisse auf höchstens zwei Nachkommastellen gerundet an (zum Beispiel 78,95). Rundungsbedingte Abweichungen in der zweiten Nachkommastelle (bis zu 0,01) sind bei der Prüfung erlaubt.</li>
         <li><strong>Dezimaltrennzeichen:</strong> Eingaben erfolgen mit Dezimalkomma (zum Beispiel 12,34). Ein Punkt wird automatisch in ein Komma umgewandelt.</li>
       </ul>
     </div>
@@ -538,7 +538,7 @@
       },
       subst: null,
       result: {
-        unit: "s", answer: 3.29, tol: 0.02,
+        unit: "s", answer: 3.29, tol: 0.01,
         bugs: [
           { val: 32.9, hint: "Du hast nicht durch $n$ geteilt. Die Gesamtzeit von 32,9 s gehört zu allen 10 Schwingungen." },
           { val: 0.304, hint: "Der Bruch ist gedreht: $T = t_{\\mathrm{ges}}/n$, nicht $n/t_{\\mathrm{ges}}$." }
@@ -597,13 +597,13 @@
         hint: "Ziehe zu jedem Formelzeichen den zugehörigen Messwert: zur Federkonstante 292 N/m, zur Periodendauer 3,29 s."
       },
       result: {
-        unit: "kg", answer: 80.06, tol: 1.5,
+        unit: "kg", answer: 80.06, tol: 0.01,
         bugs: [
           { val: 320, hint: "Der Faktor 4 im Nenner fehlt — er stammt vom Quadrieren von $2\\pi$. Prüfe: $m = D\\,T^2/(4\\pi^2)$." },
           { val: 24.3, hint: "Das Quadrat von $T$ fehlt." }
         ],
-        hint1: "Rechne schrittweise: erst $T^2$, dann $D \\cdot T^2$, dann teile durch $4\\pi^2 \\approx 39{,}5$.",
-        hint2: "Zwischenschritt: $T^2 = (3{,}29)^2 \\approx 10{,}8$. Danach: $m = 292 \\cdot 10{,}8 / 39{,}5$."
+        hint1: "Rechne schrittweise: erst $T^2$, dann $D \\cdot T^2$, dann teile durch $4\\pi^2$ (Pi-Taste: rund $39{,}4784$).",
+        hint2: "Zwischenschritt: $T^2 = (3{,}29)^2 = 10{,}8241$. Danach: $m = 292 \\cdot 10{,}8241 / 39{,}4784 \\approx 80{,}06$.",
       },
       muster: {
         given: "$D = 292\\,\\mathrm{N/m};\\; T = 3{,}29\\,\\mathrm{s}$",
@@ -718,20 +718,20 @@
         hint: "Zu $m$ gehört die Masse der Eichmasse, zu $T$ die Schwingungsdauer aus dem ersten Schritt."
       },
       result: {
-        unit: "N/m", answer: 292.08, tol: 5,
+        unit: "N/m", answer: 292.00, tol: 0.01,
         bugs: [
           { val: 73, hint: "Der Faktor 4 fehlt — prüfe: $D = 4\\pi^2 m/T^2$." },
           { val: 151.8, hint: "Das Quadrat von $T$ im Nenner fehlt." }
         ],
-        hint1: "Rechne schrittweise: erst $4\\pi^2 \\approx 39{,}5$, dann $39{,}5 \\cdot 2{,}00$, dann teile durch $T^2$.",
-        hint2: "Zwischenschritt: $T^2 = (0{,}52)^2 \\approx 0{,}27\\,\\mathrm{s^2}$. Danach: $D = 39{,}5 \\cdot 2{,}00 / 0{,}27$."
+        hint1: "Rechne schrittweise: erst $4\\pi^2$ mit der Pi-Taste (rund $39{,}4784$), dann mal $2{,}00$, dann teile durch $T^2$.",
+        hint2: "Zwischenschritt: $T^2 = (0{,}52)^2 = 0{,}2704\\,\\mathrm{s^2}$. Danach: $D = 78{,}9568 / 0{,}2704$.",
       },
       muster: {
         given: "$m_{\\mathrm{E}} = 2{,}00\\,\\mathrm{kg};\\; T = 0{,}52\\,\\mathrm{s}$",
         sought: "Federkonstante $D$",
         formula: "$D = \\frac{4\\,\\pi^2\\,m}{T^2}$",
         substitute: "$D = \\frac{4\\,\\pi^2 \\cdot 2{,}00}{(0{,}52)^2}\\,\\mathrm{N/m}$",
-        result: "$D \\approx 292{,}08\\,\\mathrm{N/m}$",
+        result: "$D \\approx 292{,}00\\,\\mathrm{N/m}$",
         answer: "Die Feder hat eine Federkonstante von rund 292 Newton pro Meter — der Wert aus Modul 1 (dort gerundet angegeben). Damit ist das Gerät geeicht."
       }
     },
@@ -789,7 +789,7 @@
         hint: "Zu $m$ gehört 68 kg, zu $D$ gehört 80,0 N/m."
       },
       result: {
-        unit: "s", answer: 5.8, tol: 0.06,
+        unit: "s", answer: 5.79, tol: 0.01,
         bugs: [
           { val: 5.34, hint: "Du hast die Wurzel vergessen — ziehe aus $m/D = 0{,}85$ erst die Wurzel ($\\approx 0{,}92$), dann multipliziere mit $2\\pi$." },
           { val: 6.82, hint: "Der Bruch unter der Wurzel ist gedreht: $m/D$, nicht $D/m$." },
@@ -803,7 +803,7 @@
         sought: "Schwingungsdauer $T$",
         formula: "$T = 2\\pi\\sqrt{\\frac{m}{D}}$",
         substitute: "$T = 2\\pi \\cdot \\sqrt{\\frac{68}{80{,}0}}\\,\\mathrm{s} = 2\\pi \\cdot 0{,}922\\,\\mathrm{s}$",
-        result: "$T \\approx 5{,}80\\,\\mathrm{s}$",
+        result: "$T \\approx 5{,}79\\,\\mathrm{s}$",
         answer: "Der Springer braucht für ein vollständiges Auf und Ab rund 5,8 Sekunden. Bis zum tiefsten Punkt — eine halbe Schwingung — vergeht davon etwa die Hälfte: rund 2,9 Sekunden."
       }
     },
@@ -814,7 +814,7 @@
           { id: "cM", latex: "m = 68\\,\\mathrm{kg}" },
           { id: "cG", latex: "g = 9{,}81\\,\\mathrm{m/s^2}" },
           { id: "cD", latex: "D = 80{,}0\\,\\mathrm{N/m}" },
-          { id: "cT", latex: "T = 5{,}80\\,\\mathrm{s}", note: "Für die Gleichgewichtsbedingung brauchst du keine Zeit." }
+          { id: "cT", latex: "T = 5{,}79\\,\\mathrm{s}", note: "Für die Gleichgewichtsbedingung brauchst du keine Zeit." }
         ],
         accept: ["cM", "cG", "cD"],
         hint: "In der Ruhelage gilt Kräftegleichgewicht: $D \\cdot s = m \\cdot g$. Du brauchst alle drei Größen."
@@ -843,12 +843,12 @@
           { id: "vM", latex: "68\\,\\mathrm{kg}" },
           { id: "vG", latex: "9{,}81\\,\\mathrm{m/s^2}" },
           { id: "vD", latex: "80{,}0\\,\\mathrm{N/m}" },
-          { id: "vT", latex: "5{,}80\\,\\mathrm{s}", note: "Eine Zeit gehört nicht in diese Formel." }
+          { id: "vT", latex: "5{,}79\\,\\mathrm{s}", note: "Eine Zeit gehört nicht in diese Formel." }
         ],
         hint: "Zu $m$ gehört 68 kg, zu $g$ der Ortsfaktor, zu $D$ die Seil-Federkonstante."
       },
       result: {
-        unit: "m", answer: 8.34, tol: 0.1,
+        unit: "m", answer: 8.34, tol: 0.01,
         bugs: [
           { val: 0.85, hint: "Du hast $m/D$ berechnet — die Gewichtskraft $m \\cdot g$ fehlt." },
           { val: 0.12, hint: "Der Bruch ist gestürzt — prüfe: $s = m\\,g/D$." }
