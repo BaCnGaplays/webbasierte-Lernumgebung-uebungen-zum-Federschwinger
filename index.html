@@ -219,14 +219,14 @@
     </div>
     <div class="card">
       <h2>Der Federschwinger — die Periodendauer</h2>
-      <p>Im Experiment habt ihr in der letzten Stunde gemessen: Je größer die Masse <span class="math" data-fm="m"></span>, desto langsamer schwingt der Körper; je größer die Federkonstante <span class="math" data-fm="D"></span>, desto schneller. Daraus folgt die Formel für die Periodendauer — die Dauer einer vollständigen Schwingung:</p>
+      <p>Im Experiment habt ihr in der letzten Stunde gemessen: Je größer die Masse des schwingenden Körpers ist, desto größer wird die Periodendauer, wenn die Feder konstant bleibt; je größer die Federkonstante ist, desto kleiner ist die Periodendauer, wenn die Masse konstant bleibt:</p>
       <div class="formula math" data-fm="T = 2\pi\sqrt{\frac{m}{D}}"></div>
       <p>Die Periodendauer hängt weder von der Amplitude ab noch vom Ortsfaktor <span class="math" data-fm="g"></span> — genau das macht die Formel für das Wiegen in der Schwerelosigkeit nutzbar.</p>
       <p class="muted">Wie du die Formel nach <span class="math" data-fm="m"></span> oder nach <span class="math" data-fm="D"></span> umstellst, erarbeitest du dir in den Aufgaben selbst: Stelle im Heft um und prüfe dann deine Umstellung. Gestufte Hinweise helfen, wenn du hängen bleibst.</p>
     </div>
     <div class="card">
       <h2>Periodendauer messen</h2>
-      <p>Weil eine einzelne Schwingung zu kurz ist für eine genaue Stoppuhr-Messung, misst man die Zeit für <span class="math" data-fm="n"></span> vollständige Schwingungen und teilt:</p>
+      <p>Weil eine einzelne Schwingung zu kurz ist für eine genaue Stoppuhr-Messung, misst man die Zeit für <span class="math" data-fm="n"></span> vollständige Schwingungen und dividiert:</p>
       <div class="formula math" data-fm="T = \frac{t_{\mathrm{ges}}}{n}"></div>
       <p class="muted">Je mehr Schwingungen man erfasst, desto kleiner der Messfehler.</p>
     </div>
@@ -235,15 +235,6 @@
       <p>Manchmal entspricht eine gemessene Zeit nur einem Teil einer Schwingung. Eine halbe Schwingung — etwa von einem Umkehrpunkt zum anderen — dauert:</p>
       <div class="formula math" data-fm="t = \frac{T}{2} = \pi\sqrt{\frac{m}{D}}"></div>
       <p class="muted">Diese Beziehung brauchst du immer, wenn nur ein Teil der Schwingung betrachtet wird — etwa der Weg vom Absprungpunkt bis zum tiefsten Punkt beim Bungeesprung.</p>
-    </div>
-    <div class="card">
-      <h2>Schreibweise in Formeln</h2>
-      <ul>
-        <li><strong>Formelzeichen kursiv:</strong> Größen wie <span class="math" data-fm="m"></span>, <span class="math" data-fm="t"></span> oder <span class="math" data-fm="D"></span> werden kursiv gesetzt.</li>
-        <li><strong>Einheiten aufrecht:</strong> Einheiten wie <span class="math" data-fm="\mathrm{kg}"></span>, <span class="math" data-fm="\mathrm{s}"></span> oder <span class="math" data-fm="\mathrm{N/m}"></span> stehen aufrecht und ohne Leerzeichen innerhalb der Einheit.</li>
-        <li>Die Konstante <span class="math" data-fm="\pi"></span> und Zahlen werden aufrecht gesetzt (ISO 80000-2). Zwischen Zahlenwert und Einheit steht ein schmales Leerzeichen.</li>
-        <li>Dezimaltrennzeichen ist das Komma, nicht der Punkt.</li>
-      </ul>
     </div>
     <div class="card explorer">
       <h2>Explorer: Wie hängt T von m und D ab?</h2>
@@ -264,7 +255,7 @@
       <p class="muted">Fragen zum Nachdenken: Verdoppelt sich T, wenn du m verdoppelst? Was passiert mit T, wenn D vervierfacht wird? Warum verläuft eine Kurve aufwärts gekrümmt und die andere stark abwärts?</p>
     </div>
     <div class="card">
-      <h2>Gerechnetes Beispiel — so sieht eine schülerkonforme Rechnung aus</h2>
+      <h2>Gerechnetes Beispiel</h2>
       <div class="muster show" style="margin-top: 0;">
         <div class="m-title">Beispielrechnung</div>
         <p><strong>Gegeben:</strong> <span class="math" data-fm="m = 50\,\mathrm{kg};\; D = 180\,\mathrm{N/m}"></span></p>
@@ -555,7 +546,7 @@
         answer: "Der Schwingstuhl benötigt für eine vollständige Schwingung rund 3,3 Sekunden."
       }
     },
-    { id: "q3", module: "m1", type: "sheet", tag: "Schülerrechnung", rearrange: true,
+    { id: "q3", module: "m1", type: "sheet", tag: "Rechnung", rearrange: true,
       prompt: "Zweiter Schritt: Bestimme mit der Periodendauer aus der Messung und der bekannten Federkonstante die Masse $m$ der Astronautin.",
       given: {
         pool: [
