@@ -497,11 +497,11 @@
       options: [
         { text: "Weil die Astronautinnen und Astronauten im Weltall keine Masse mehr besitzen.", correct: false,
           fb: "Diese Annahme ist falsch. Masse und Trägheit eines Körpers bleiben im Weltall vollständig erhalten — sie sind vom Gravitationsfeld unabhängig." },
-        { text: "Weil die Waage die Gewichtskraft misst, die in der Schwerelosigkeit nicht wirkt.", correct: true,
+        { text: "Weil die Waage die Gewichtskraft misst, welche in der Schwerelosigkeit nicht wirkt.", correct: true,
           fb: "Richtig. Eine Waage misst die Gewichtskraft $F_{\\mathrm{G}} = m \\cdot g$ — das Produkt aus Masse und Ortsfaktor $g$. In der Schwerelosigkeit wirkt keine wirksame Gewichtskraft, die Waage zeigt null — obwohl die Masse unverändert ist." },
         { text: "Weil es in der Raumstation überhaupt keine Gravitation gibt.", correct: false,
           fb: "Das ist ein verbreitetes Missverständnis. Im niedrigen Erdorbit beträgt der Ortsfaktor noch etwa 90 Prozent des Wertes an der Erdoberfläche. Schwerelosigkeit entsteht, weil die Station mitsamt Besatzung frei um die Erde fällt." },
-        { text: "Weil elektronische Waagen im Vakuum der Kapsel nicht funktionieren.", correct: false,
+        { text: "Weil elektronische Waagen im Vakuum der Raumkapsel nicht funktionieren.", correct: false,
           fb: "Das ist nicht der Grund. Elektronische Waage funktionieren unabhängig vom Luftdruck. Entscheidend ist die fehlende wirksame Gewichtskraft." }
       ]
     },
@@ -619,11 +619,11 @@
       options: [
         { text: "Die Periodendauer hängt nur von träger Masse und Federkonstante ab, nicht vom Ortsfaktor $g$.", correct: true,
           fb: "Richtig. Die Trägheit einer Masse ist unabhängig vom Ortsfaktor. Eine größere Masse schwingt langsamer — im Weltall genauso wie auf der Erde. Genau darauf beruht die Messung." },
-        { text: "Die Feder erzeugt in der Schwerelosigkeit eine künstliche Gravitation.", correct: false,
+        { text: "Die Feder erzeugt in der Schwerelosigkeit eine künstliche Gravitation, die der auf der Erdoberfläche entspricht.", correct: false,
           fb: "Eine Feder erzeugt keine Gravitation. Sie übt lediglich eine Rückstellkraft aus, sobald sie gedehnt oder gestaucht wird." },
         { text: "In der Schwerelosigkeit schwingt jeder Körper mit derselben Dauer, unabhängig von seiner Masse.", correct: false,
           fb: "Das Gegenteil ist der Fall: Genau weil die Periodendauer von der Masse abhängt, kann man aus ihr die Masse berechnen." },
-        { text: "Das Verfahren funktioniert nur, weil die Raumstation rotiert.", correct: false,
+        { text: "Das Verfahren funktioniert nur, weil die Raumstation rotiert. Diese Rotation erzeugt Scheinkräfte, die die Gewichtskraft nachahmen.", correct: false,
           fb: "Die Messung erfordert keine Rotation. Sie beruht allein auf dem Zusammenhang zwischen Periodendauer, Masse und Federkonstante." }
       ]
     },
@@ -868,11 +868,11 @@
     { id: "q10", module: "m3", type: "mc", unlockAfter: "q8", tag: "Modellgrenzen",
       prompt: "Warum weicht ein realer Bungeesprung vom hier berechneten Modell ab?",
       options: [
-        { text: "Reale Seile dämpfen die Bewegung: Bei jedem Durchgang geht Energie verloren, die Schwingung klingt ab.", correct: true,
+        { text: "Reale Seile dämpfen die Bewegung: Bei jedem Durchgang wird durch Reibungsarbeit Energie entwertet, also in thermische Energie niedriger Temperatur umgewandelt; die Schwingung klingt ab.", correct: true,
           fb: "Richtig. Die Formel gilt für die ungedämpfte Schwingung nur näherungsweise. Mit jedem Durchgang wird der Ausschlag kleiner." },
-        { text: "Die Formel gilt auch realerweise exakt, weil Seile stets Hookesche Federn sind.", correct: false,
+        { text: "Die Formel gilt auch realerweise exakt, weil Seile stets Hookesche Federn sind und die Formel die Verformung und Reibungsarbeit realer Körper brücksichtigt.", correct: false,
           fb: "Reale Seile verhalten sich nur näherungsweise linear. Insbesondere beim ersten Dehnen weicht die Kennlinie vom Hookeschen Gesetz ab." },
-        { text: "Der Unterschied entsteht allein dadurch, dass der Springer nicht punktförmig ist.", correct: false,
+        { text: "Der Unterschied entsteht allein dadurch, dass der Springer nicht punktförmig ist. Das Massepunktmodell anzuwenden stellt also eine starke Vereinfachung der Bewegung dar.", correct: false,
           fb: "Die ausgedehnte Körpermasse spielt eine Rolle, ist aber nicht der wichtigste Effekt. Entscheidender sind Dämpfung und die nichtlineare Seilkennlinie." },
         { text: "Real ist die Schwingungsdauer größer, weil der Ortsfaktor im freien Fall wirkt.", correct: false,
           fb: "Der Ortsfaktor geht in die Schwingungsdauer gar nicht ein — der Federschwinger schwingt um die Ruhelage unabhängig von $g$." }
