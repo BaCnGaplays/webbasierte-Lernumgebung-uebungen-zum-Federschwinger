@@ -162,6 +162,9 @@
 
   footer.src { color: var(--muted); font-size: .8rem; margin-top: 28px; }
   footer.src p { margin: 4px 0; }
+
+  /* Untere Bereichs-Navigation */
+  .panel-nav { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 18px; }
 </style>
 </head>
 <body>
@@ -970,6 +973,31 @@
     }
     b.addEventListener("click", function () { showPanel(n.key); });
     tabsEl.appendChild(b);
+  });
+
+  /* Untere Navigation: Weiter und Zurueck zwischen den Bereichen */
+  navDefs.forEach(function (n, i) {
+    var sec = document.getElementById(n.key);
+    if (!sec) return;
+    var nav = document.createElement("div");
+    nav.className = "panel-nav";
+    if (i > 0) {
+      var prev = document.createElement("button");
+      prev.className = "btn secondary";
+      prev.textContent = "← Zurück zu " + navDefs[i - 1].label;
+      prev.addEventListener("click", function () { showPanel(navDefs[i - 1].key); });
+      nav.appendChild(prev);
+    } else {
+      nav.appendChild(document.createElement("span"));
+    }
+    if (i < navDefs.length - 1) {
+      var next = document.createElement("button");
+      next.className = "btn";
+      next.textContent = "Weiter zu " + navDefs[i + 1].label + " →";
+      next.addEventListener("click", function () { showPanel(navDefs[i + 1].key); });
+      nav.appendChild(next);
+    }
+    sec.appendChild(nav);
   });
 
   function showPanel(id) {
